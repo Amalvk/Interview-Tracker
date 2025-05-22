@@ -9,12 +9,6 @@ import MenuIcon from '@mui/icons-material/Menu';
 
 export default function Header() {
 
-  const [state, setState] = React.useState<State>({
-    open: false,
-    vertical: 'top',
-    horizontal: 'center',
-  });
-  
   return (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static">
