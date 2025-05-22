@@ -2,6 +2,8 @@ import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, D
 import { useEffect, useState } from 'react';
 import { fetchInterviewsFromFirestore, saveFormToFirestore } from '../Redux/formSlice';
 import { useDispatch, useSelector } from 'react-redux';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+
 import InterviewList from './InterviewList';
 import dayjs, { Dayjs } from 'dayjs';
 import { format } from 'date-fns';
@@ -36,9 +38,7 @@ function ActiveInterview() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-const handleDateChange = (newValue) => {
-  setFormData(prev => ({ ...prev, applicationDate: newValue }));
-};
+
 
 
 
@@ -73,8 +73,9 @@ const handleDateChange = (newValue) => {
   return (
     <>
       <Box sx={{ textAlign: 'center', background: '#fff', p: 3, borderRadius: 2, boxShadow: 2 }}>
+        <AddCircleOutlineIcon fontSize='large' color='#866e6e' />
         <Typography>Start by adding your first interview to track.</Typography>
-        <Button onClick={handleOpen} variant="contained">Add Interview</Button>
+        <Button onClick={handleOpen} sx={{ textTransform: 'capitalize' }} variant="contained">Add Interview</Button>
       </Box>
       {formState.map((interview) => {
         return <InterviewList {...interview} />;
@@ -162,7 +163,7 @@ const handleDateChange = (newValue) => {
                   size="small"
                   variant="outlined"
                   placeholder="Contact number"
-                /> 
+                />
               </Box>
             </Box>
 
@@ -179,12 +180,10 @@ const handleDateChange = (newValue) => {
               />
             </Box>
           </Box>
-
           <Box textAlign={'center'}>
             <Button onClick={handleSubmit} variant="contained">Submit form</Button>
           </Box>
         </Dialog>
-      
       </Box>
     </>
   )

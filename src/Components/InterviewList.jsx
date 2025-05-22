@@ -1,4 +1,4 @@
-import { Box, MenuItem, Select, Typography } from '@mui/material';
+import { Box, Button, MenuItem, Select, Typography } from '@mui/material';
 import React, { useState } from 'react';
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useDispatch } from 'react-redux';
@@ -17,18 +17,6 @@ function InterviewList(props) {
         dispatch(updateInterviewStatus({ id, newStatus }));
         setOpen(true);
     };
-
-
-    const interviewStatus = (status) => {
-        if (status === 1) return "Applied";
-        if (status === 2) return "HR Round";
-        if (status === 3) return "Technical Round";
-        if (status === 4) return "Management Round";
-        if (status === 5) return "Management Round";
-        return "Offer Received";
-    };
-
-
 
     return (
         <Box
@@ -68,7 +56,7 @@ function InterviewList(props) {
                 <Box>
                     <Select
                         value={initialStatus}               // value must be a number (1,2,3,...)
-                        onChange={(e)=>{handleStatusChange(e.target.value)}}      // handle user selection
+                        onChange={(e) => { handleStatusChange(e.target.value) }}      // handle user selection
                         size="small"
                         fullWidth
                     >
@@ -80,7 +68,7 @@ function InterviewList(props) {
                     </Select>
 
                     {/* <Typography> {interviewStatus(initialStatus)}</Typography> */}
-                    <Box textAlign={'right'} onClick={() => handleStatusChange(6)}><DeleteIcon /></Box>
+                    <Box textAlign={'right'} ><Button size='small' variant="contained" sx={{ mt: 2, pr: 1, gap: 1, textTransform: 'capitalize' }} onClick={() => handleStatusChange(6)}> Uncracked</Button></Box>
                 </Box>
             </Box>
             <Snackbar
