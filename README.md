@@ -1,5 +1,7 @@
 # React + Vite
 
+Implemented on the basis of react redux-toolkit, thunk midilware concepts 
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:
