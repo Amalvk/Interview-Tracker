@@ -47,7 +47,7 @@ function InterviewList(props) {
                     <Box fontWeight={600}>{companyName}</Box>
                     <Box> {position}</Box>
                     <Box>HR Contact : {contactNumber}</Box>
-                    <Box>HR Name :  {contactName}</Box>
+                    {contactName && <Box>HR Name :  {contactName}</Box>}
                     <Box>Skills : {skills}</Box>
                     <Box>Date : {applicationDate}</Box>
                     {comments && <Box mt={4}>Comments : {comments}</Box>}
