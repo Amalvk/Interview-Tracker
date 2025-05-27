@@ -23,8 +23,10 @@ function ActiveInterview() {
     initialStatus: 1,
     position: '',
     contactNumber: '',
+    contactName: '',
     applicationDate: format(new Date(), 'MMMM dd, yyyy') || dayjs(new Date()),
-    skills: ''
+    skills: '',
+    comments: ''
   });
 
 
@@ -57,7 +59,6 @@ function ActiveInterview() {
           initialStatus: '',
           position: '',
           applicationDate: format(new Date(), 'MMMM dd, yyyy'),
-          last: '',
           skills: ''
         });
         handleClose();
@@ -81,8 +82,6 @@ function ActiveInterview() {
         return <InterviewList {...interview} />;
       })}
 
-
-
       <Box>
         <Dialog
           open={open}
@@ -98,22 +97,23 @@ function ActiveInterview() {
             {"Add New Interview"}
           </DialogTitle>
           <Box sx={{ display: 'flex', flexDirection: 'column', m: 2, gap: 2 }}>
-            <Box sx={{ gap: 2, display: 'flex', width: '100%' }}>
-              <Box>
-                <Typography fontWeight={600} fontSize={15}>Company Name</Typography>
-                <TextField
-                  name="companyName"
-                  value={formData.companyName}
-                  onChange={handleChange}
-                  size='small'
-                  variant="outlined"
-                  placeholder="eg: Google"
-                  autoFocus
-                />
-              </Box>
-              <Box>
-                <Typography fontWeight={600} fontSize={15}>Initial Status*</Typography>
-                { /* <TextField
+
+            <Box>
+              <Typography fontWeight={600} fontSize={15}>Company Name</Typography>
+              <TextField
+                name="companyName"
+                value={formData.companyName}
+                onChange={handleChange}
+                size='small'
+                variant="outlined"
+                placeholder="eg: Google"
+                autoFocus
+                fullWidth
+              />
+            </Box>
+            <Box>
+              <Typography fontWeight={600} fontSize={15}>Initial Status</Typography>
+              { /* <TextField
                   name="initialStatus"
                   value={formData.initialStatus}
                   onChange={handleChange}
@@ -121,54 +121,67 @@ function ActiveInterview() {
                   variant="outlined"
                 /> */}
 
-                <Select
-                  width='100%'
-                  value={formData.initialStatus}
-                  name="initialStatus"
-                  onChange={handleChange}
-                  size='small'
-                  fullWidth
-                >
-                  <MenuItem value={1}>Applied</MenuItem>
-                  <MenuItem value={2}>HR round</MenuItem>
-                  <MenuItem value={3}>Technical round</MenuItem>
-                  <MenuItem value={4}>management round</MenuItem>
-                </Select>
+              <Select
+                width='100%'
+                value={formData.initialStatus}
+                name="initialStatus"
+                onChange={handleChange}
+                size='small'
+                fullWidth
+              >
+                <MenuItem value={1}>Applied</MenuItem>
+                <MenuItem value={2}>HR round</MenuItem>
+                <MenuItem value={3}>Technical round</MenuItem>
+                <MenuItem value={4}>management round</MenuItem>
+              </Select>
 
 
-              </Box>
-            </Box>
-
-            <Box sx={{ gap: 2, display: 'flex', width: '100%' }}>
-              <Box>
-                <Typography fontWeight={600} fontSize={15}>Position*</Typography>
-                <TextField
-                  name="position"
-                  value={formData.position}
-                  onChange={handleChange}
-                  size="small"
-                  variant="outlined"
-                  placeholder="eg: Frontend Engineer"
-                />
-
-
-              </Box>
-              <Box>
-                <Typography fontWeight={600} fontSize={15}>Contact number*</Typography>
-
-                <TextField
-                  name="contactNumber"
-                  value={formData.contactNumber}
-                  onChange={handleChange}
-                  size="small"
-                  variant="outlined"
-                  placeholder="Contact number"
-                />
-              </Box>
             </Box>
 
             <Box>
-              <Typography fontWeight={600} fontSize={15}>Skill set*</Typography>
+              <Typography fontWeight={600} fontSize={15}>Position</Typography>
+              <TextField
+                name="position"
+                value={formData.position}
+                onChange={handleChange}
+                size="small"
+                variant="outlined"
+                placeholder="eg: Frontend Engineer"
+                fullWidth
+              />
+
+
+            </Box>
+            <Box>
+              <Typography fontWeight={600} fontSize={15}>Contact number</Typography>
+
+              <TextField
+                name="contactNumber"
+                value={formData.contactNumber}
+                onChange={handleChange}
+                size="small"
+                variant="outlined"
+                placeholder="Contact number"
+                fullWidth
+              />
+            </Box>
+
+            <Box>
+              <Typography fontWeight={600} fontSize={15}>HR Name</Typography>
+
+              <TextField
+                name="contactName"
+                value={formData.contactName}
+                onChange={handleChange}
+                size="small"
+                variant="outlined"
+                placeholder="Contact name"
+                fullWidth
+              />
+            </Box>
+
+            <Box>
+              <Typography fontWeight={600} fontSize={15}>Skill set</Typography>
               <TextField
                 name="skills"
                 value={formData.skills}
@@ -179,7 +192,23 @@ function ActiveInterview() {
                 fullWidth
               />
             </Box>
+
+            <Box>
+              <Typography fontWeight={600} fontSize={15}>Comments</Typography>
+              <TextField
+                name="comments"
+                value={formData.comments}
+                onChange={handleChange}
+                size='small'
+                variant="outlined"
+                placeholder=" "
+                fullWidth
+                multiline
+                rows={2}
+              />
+            </Box>
           </Box>
+
           <Box textAlign={'center'}>
             <Button onClick={handleSubmit} variant="contained">Submit form</Button>
           </Box>

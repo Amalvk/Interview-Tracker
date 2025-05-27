@@ -1,5 +1,4 @@
 import { Box, Button, Typography } from '@mui/material'
-import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import DeleteIcon from "@mui/icons-material/Delete";
 import { deleteInterviewById, fetchInterviewsFromFirestore, updateInterviewStatus } from '../Redux/formSlice';

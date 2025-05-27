@@ -1,14 +1,11 @@
 import { Box, Button, MenuItem, Select, Typography } from '@mui/material';
 import React, { useState } from 'react';
-import DeleteIcon from "@mui/icons-material/Delete";
 import { useDispatch } from 'react-redux';
 import { updateInterviewStatus } from '../Redux/formSlice';
 import Snackbar from '@mui/material/Snackbar';
 
-
-
 function InterviewList(props) {
-    const { id, companyName, position, applicationDate, skills, initialStatus, contactNumber } = props;
+    const { id, companyName, position, applicationDate, skills, initialStatus, contactNumber, comments, contactName } = props;
 
     const [open, setOpen] = useState(false);
     const dispatch = useDispatch();
@@ -49,9 +46,11 @@ function InterviewList(props) {
                 <Box>
                     <Box fontWeight={600}>{companyName}</Box>
                     <Box> {position}</Box>
-                    <Box> {contactNumber}</Box>
+                    <Box>HR Contact : {contactNumber}</Box>
+                    <Box>HR Name :  {contactName}</Box>
                     <Box>Skills : {skills}</Box>
                     <Box>Date : {applicationDate}</Box>
+                    {comments && <Box mt={4}>Comments : {comments}</Box>}
                 </Box>
                 <Box>
                     <Select
