@@ -14,15 +14,17 @@ export default function InterviewCard() {
     };
 
     return (
-        <Box sx={{  mt: 5,mx: { xs: 2, md: 10 } }}>
-            <Box sx={{ borderBottom: 1, borderColor: 'divider',mx:2,borderRadius: '8px' }}>
+        <Box sx={{ mt: 5, mx: { xs: 2, md: 10 } }}>
+            <Box sx={{ borderBottom: 1, borderColor: 'divider', mx: 2, borderRadius: '8px' }}>
                 <Tabs
                     value={value}
                     onChange={handleChange}
+                    variant="scrollable"
+                    scrollButtons="auto"
                     sx={{
-                       textTransform: 'capitalize',
-                        background: '#fff', 
-                       borderRadius: '8px',
+                        textTransform: 'capitalize',
+                        background: '#fff',
+                        borderRadius: '8px',
                         '& .MuiTab-root': {
                             textTransform: 'capitalize',
                             outline: 'none',
