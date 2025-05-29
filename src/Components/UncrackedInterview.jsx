@@ -54,8 +54,8 @@ function UncrackedInterview() {
             <Box color={'#ba9e9e'}> {item.position}</Box>
             <Box pt={.5}>Date : {item.contactNumber}</Box>
             <Box>Skills : {item.skills}</Box>
-            <Box>Date : {item.applicationDate}</Box>
             {item.comments && <Box mt={4}>Comments : {item.comments}</Box>}
+            <Box pt={1} fontSize={10} fontWeight={600} color={'#a3acad'}>Date : {item.applicationDate}</Box>
 
           </Box>
           <Box>
@@ -63,7 +63,8 @@ function UncrackedInterview() {
               <Button
                 variant="contained"
                 sx={{
-                  background: '#5592e2',
+                  color: '#fff',
+                  background: '#2a8b8c',
                   height: 20,
                   fontSize: '0.7rem',
                   fontWeight: 600,
@@ -79,8 +80,8 @@ function UncrackedInterview() {
                 sx={{
                   mt: 2,
                   pr: 0,
-                  borderColor: 'red',
-                  color: '#e29e55 ',
+                  borderColor: '#e29e55',
+                  color: '#d87849',
                   fontWeight: 600,
                   height: 20,
                   fontSize: '0.7rem',
@@ -91,6 +92,7 @@ function UncrackedInterview() {
                 <DeleteIcon sx={{ fontSize: 15 }} />
               </Button>
             </Box>
+
           </Box>
         </Box>
       </Box>)

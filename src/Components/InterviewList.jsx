@@ -49,8 +49,9 @@ function InterviewList(props) {
                     <Box pt={.5}>Contact : {contactNumber}</Box>
                     {contactName && <Box display={'flex'}>HR Name :  {contactName}</Box>}
                     <Box>Skills : {skills}</Box>
-                    <Box>Date : {applicationDate}</Box>
                     {comments && <Box mt={4}>Comments : {comments}</Box>}
+                    <Box  pt={1} fontSize={10} fontWeight={600} color={'#a3acad'}>Date : {applicationDate}</Box>
+
                 </Box>
                 <Box>
                     <Select
@@ -77,7 +78,7 @@ function InterviewList(props) {
                                 gap: 1,
                                 textTransform: 'capitalize',
                                 color: '#fff',
-                                background: '#5592e2',
+                                background: '#2a8b8c',
                                 height: 20,
                                 fontSize: '0.7rem',
                             }}
@@ -94,8 +95,8 @@ function InterviewList(props) {
                                 pr: 1,
                                 fontWeight:600,
                                 textTransform: 'capitalize',
-                                borderColor: 'red',
-                                color: '#e29e55 ',
+                                borderColor: '#e29e55',
+                                color: 'red',
                                 height: 20,
                                 fontSize: '0.7rem',
                             }}
@@ -107,6 +108,7 @@ function InterviewList(props) {
 
                 </Box>
             </Box>
+
             <Snackbar
                 open={open}
                 autoHideDuration={3000}
