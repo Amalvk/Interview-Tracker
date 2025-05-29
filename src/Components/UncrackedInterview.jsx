@@ -21,7 +21,6 @@ function UncrackedInterview() {
 
   return (
     <>{formState.map((item) => {
-      console.log(item.id);
 
       return (<Box
         // key={id}
@@ -50,17 +49,46 @@ function UncrackedInterview() {
             },
           }}
         >
-          <Box>
-            <Box fontWeight={600}>Company Name : {item.companyName}</Box>
-            <Box>Position : {item.position}</Box>
-            <Box>Date : {item.contactNumber}</Box>
+          <Box fontSize={13}>
+            <Box fontSize={15} fontWeight={600}> {item.companyName}</Box>
+            <Box color={'#ba9e9e'}> {item.position}</Box>
+            <Box pt={.5}>Date : {item.contactNumber}</Box>
             <Box>Skills : {item.skills}</Box>
+            <Box>Date : {item.applicationDate}</Box>
+            {item.comments && <Box mt={4}>Comments : {item.comments}</Box>}
+
           </Box>
           <Box>
-            <Typography>Status :  Not Cracked</Typography>
-            <Box textAlign={'right'} ><Button size='small' sx={{ mt: 2, pr: 1, gap: 1, textTransform: 'capitalize' }} onClick={() => handleStatusChange(item.id, 1)}> Activate </Button></Box>
-            <Box textAlign={'right'} ><Button size='small' variant="contained" sx={{ mt: 2, pr: 0, gap: 1, textTransform: 'capitalize' }} onClick={() => handleDelete(item.id)}> Delete<DeleteIcon /> </Button></Box>
-
+            <Box  textAlign={'right'}>
+              <Button
+              variant="contained"
+               sx={{
+                  background: '#5592e2',
+                  height: 20,
+                  fontSize: '0.7rem',
+                  textTransform: 'capitalize'
+                }}
+                size='small'
+                onClick={() => handleStatusChange(item.id, 1)}>
+                Activate
+              </Button>
+            </Box>
+            <Box textAlign={'right'} >
+              <Button size='small' variant="outlined"
+                sx={{
+                  mt: 2,
+                  pr: 0,
+                  borderColor: 'red',
+                  color: '#e29e55 ',
+                  height: 20,
+                  fontSize: '0.7rem',
+                  textTransform: 'capitalize'
+                }}
+                onClick={() => handleDelete(item.id)}>
+                Delete
+                <DeleteIcon sx={{ fontSize: 15 }} />
+                 </Button>
+            </Box>
           </Box>
         </Box>
       </Box>)

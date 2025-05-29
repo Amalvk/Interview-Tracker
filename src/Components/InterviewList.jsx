@@ -32,7 +32,7 @@ function InterviewList(props) {
                 sx={{
                     background: '#fff',
                     mt: 3,
-                    p: 3,
+                    p: "20px 10px 20px 20px",
                     display: 'flex',
                     justifyContent: 'space-between',
                     borderRadius: 2,
@@ -43,11 +43,11 @@ function InterviewList(props) {
                     },
                 }}
             >
-                <Box>
-                    <Box fontWeight={600}>{companyName}</Box>
-                    <Box> {position}</Box>
-                    <Box>HR Contact : {contactNumber}</Box>
-                    {contactName && <Box>HR Name :  {contactName}</Box>}
+                <Box fontSize={13}>
+                    <Box fontSize={15} fontWeight={600}>{companyName}</Box>
+                    <Box color={'#ba9e9e'} fontWeight={600}> {position}</Box>
+                    <Box pt={.5}>Contact : {contactNumber}</Box>
+                    {contactName && <Box display={'flex'}>HR Name :  {contactName}</Box>}
                     <Box>Skills : {skills}</Box>
                     <Box>Date : {applicationDate}</Box>
                     {comments && <Box mt={4}>Comments : {comments}</Box>}
@@ -58,6 +58,7 @@ function InterviewList(props) {
                         onChange={(e) => { handleStatusChange(e.target.value) }}      // handle user selection
                         size="small"
                         fullWidth
+                        sx={{ fontSize: '0.7rem', height: 25 }}
                     >
                         <MenuItem value={1}>Applied</MenuItem>
                         <MenuItem value={2}>HR Round</MenuItem>
@@ -67,7 +68,23 @@ function InterviewList(props) {
                     </Select>
 
                     {/* <Typography> {interviewStatus(initialStatus)}</Typography> */}
-                    <Box textAlign={'right'} ><Button size='small' variant="contained" sx={{ mt: 2, pr: 1, gap: 1, textTransform: 'capitalize' }} onClick={() => handleStatusChange(6)}> Uncracked</Button></Box>
+                    <Box textAlign={'right'} >
+                        <Button size='small'
+                            variant="contained"
+                            sx={{
+                                mt: 2,
+                                pr: 1,
+                                gap: 1, 
+                                textTransform:'capitalize',
+                                background: '#ca663f',
+                                color: '#fff',
+                                height: 20,
+                                fontSize: '0.7rem',
+                            }}
+                            onClick={() => handleStatusChange(6)}>
+                            Decline
+                        </Button>
+                    </Box>
                 </Box>
             </Box>
             <Snackbar

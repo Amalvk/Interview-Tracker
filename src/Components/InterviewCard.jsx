@@ -21,15 +21,21 @@ export default function InterviewCard() {
                     onChange={handleChange}
                     variant="scrollable"
                     scrollButtons="auto"
+                    TabIndicatorProps={{
+                        sx: { backgroundColor: 'brown' }  // underline color for active tab
+                    }}
                     sx={{
-                        textTransform: 'capitalize',
                         background: '#fff',
                         borderRadius: '8px',
                         '& .MuiTab-root': {
                             textTransform: 'capitalize',
+                            color: 'gray',  // default color for tabs
                             outline: 'none',
                             '&:focus': { outline: 'none' },
                             '&:focus-visible': { outline: 'none' },
+                        },
+                        '& .MuiTab-root.Mui-selected': {
+                            color: 'black',  // active tab color override
                         },
                     }}
                 >

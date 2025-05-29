@@ -48,8 +48,6 @@ export const updateInterviewStatus = createAsyncThunk(
 export const deleteInterviewById = createAsyncThunk(
   'form/deleteInterviewById',
   async (id, { rejectWithValue }) => {
-    console.log(id.nodeId);
-
     try {
       const docRef = doc(db, 'activeInterviews', id.nodeId);
       await deleteDoc(docRef);

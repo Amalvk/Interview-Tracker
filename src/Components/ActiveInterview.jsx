@@ -7,6 +7,7 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import InterviewList from './InterviewList';
 import dayjs, { Dayjs } from 'dayjs';
 import { format } from 'date-fns';
+import CommonSkeleton from './Skelton';
 
 function ActiveInterview() {
   const [open, setOpen] = useState(false);
@@ -16,7 +17,11 @@ function ActiveInterview() {
 
 
 
-  const formState = useSelector(state => state.form.interviewList.filter(item => item.initialStatus != 6));
+const { formState, formStatus } = useSelector(state => ({
+  formState: state.form.interviewList.filter(item => item.initialStatus != 6),
+  formStatus: state.form.fetchStatus
+}));
+
 
   const [formData, setFormData] = useState({
     companyName: '',
@@ -73,15 +78,15 @@ function ActiveInterview() {
 
   return (
     <>
-      <Box sx={{ textAlign: 'center', background: '#fff', p: 3, borderRadius: 2, boxShadow: 2 }}>
+      <Box onClick={handleOpen} sx={{ textAlign: 'center', background: '#fff', p: 3, borderRadius: 2, boxShadow: 2 }}>
         <AddCircleOutlineIcon fontSize='large' color='#866e6e' />
-        <Typography>Start by adding your first interview to track.</Typography>
-        <Button onClick={handleOpen} sx={{ textTransform: 'capitalize' }} variant="contained">Add Interview</Button>
+        <Typography>Start by adding your interview to track.</Typography>
+        <Button sx={{ textTransform: 'capitalize',background:'gray' }} variant="contained">Add Interview</Button>
       </Box>
       {formState.map((interview) => {
         return <InterviewList {...interview} />;
       })}
-
+      <Box>{formStatus === 'loading' && <CommonSkeleton/>}</Box>
       <Box>
         <Dialog
           open={open}
