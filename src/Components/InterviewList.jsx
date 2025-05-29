@@ -5,7 +5,7 @@ import { updateInterviewStatus } from '../Redux/formSlice';
 import Snackbar from '@mui/material/Snackbar';
 
 function InterviewList(props) {
-    const { id, companyName, position, applicationDate, skills, initialStatus, contactNumber, comments, contactName } = props;
+    const { id, companyName, position, applicationDate, skills, initialStatus, contactNumber, comments, contactName,handleUpdate } = props;
 
     const [open, setOpen] = useState(false);
     const dispatch = useDispatch();
@@ -74,10 +74,28 @@ function InterviewList(props) {
                             sx={{
                                 mt: 2,
                                 pr: 1,
-                                gap: 1, 
-                                textTransform:'capitalize',
-                                background: '#ca663f',
+                                gap: 1,
+                                textTransform: 'capitalize',
                                 color: '#fff',
+                                background: '#5592e2',
+                                height: 20,
+                                fontSize: '0.7rem',
+                            }}
+                            onClick={() => handleUpdate(props)}>
+                            Update
+                        </Button>
+                    </Box>
+
+                    <Box textAlign={'right'} >
+                        <Button size='small'
+                            variant="outlined"
+                            sx={{
+                                mt: 2,
+                                pr: 1,
+                                fontWeight:600,
+                                textTransform: 'capitalize',
+                                borderColor: 'red',
+                                color: '#e29e55 ',
                                 height: 20,
                                 fontSize: '0.7rem',
                             }}
@@ -85,6 +103,8 @@ function InterviewList(props) {
                             Decline
                         </Button>
                     </Box>
+
+
                 </Box>
             </Box>
             <Snackbar

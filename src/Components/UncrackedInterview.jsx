@@ -59,13 +59,14 @@ function UncrackedInterview() {
 
           </Box>
           <Box>
-            <Box  textAlign={'right'}>
+            <Box textAlign={'right'}>
               <Button
-              variant="contained"
-               sx={{
+                variant="contained"
+                sx={{
                   background: '#5592e2',
                   height: 20,
                   fontSize: '0.7rem',
+                  fontWeight: 600,
                   textTransform: 'capitalize'
                 }}
                 size='small'
@@ -80,6 +81,7 @@ function UncrackedInterview() {
                   pr: 0,
                   borderColor: 'red',
                   color: '#e29e55 ',
+                  fontWeight: 600,
                   height: 20,
                   fontSize: '0.7rem',
                   textTransform: 'capitalize'
@@ -87,7 +89,7 @@ function UncrackedInterview() {
                 onClick={() => handleDelete(item.id)}>
                 Delete
                 <DeleteIcon sx={{ fontSize: 15 }} />
-                 </Button>
+              </Button>
             </Box>
           </Box>
         </Box>

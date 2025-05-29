@@ -45,6 +45,19 @@ export const updateInterviewStatus = createAsyncThunk(
   }
 );
 
+export const updateInterviewForm = createAsyncThunk(
+  'form/updateInterviewForm',
+  async ({ id, updatedData }, { rejectWithValue }) => {
+    try {
+      const docRef = doc(db, 'activeInterviews', id);
+      await updateDoc(docRef, updatedData);
+      return { id, updatedData };
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
 export const deleteInterviewById = createAsyncThunk(
   'form/deleteInterviewById',
   async (id, { rejectWithValue }) => {
@@ -112,6 +125,14 @@ const formSlice = createSlice({
         const existingInterview = state.interviewList.find(item => item.id === id);
         if (existingInterview) {
           existingInterview.initialStatus = newStatus;
+        }
+      })
+
+      .addCase(updateInterviewForm.fulfilled, (state, action) => {
+        const { id, updatedData } = action.payload;
+        const existingInterview = state.interviewList.find(item => item.id === id);
+        if (existingInterview) {
+          Object.assign(existingInterview, updatedData);
         }
       })
       .addCase(updateInterviewStatus.rejected, (state, action) => {

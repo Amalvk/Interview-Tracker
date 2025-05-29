@@ -1,6 +1,6 @@
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, MenuItem, Select, TextField, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
-import { fetchInterviewsFromFirestore, saveFormToFirestore } from '../Redux/formSlice';
+import { fetchInterviewsFromFirestore, saveFormToFirestore, updateInterviewForm, updateInterviewStatus } from '../Redux/formSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
@@ -11,18 +11,10 @@ import CommonSkeleton from './Skelton';
 
 function ActiveInterview() {
   const [open, setOpen] = useState(false);
+  const [update, setUpdate] = useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
   const dispatch = useDispatch();
-
-
-
-const { formState, formStatus } = useSelector(state => ({
-  formState: state.form.interviewList.filter(item => item.initialStatus != 6),
-  formStatus: state.form.fetchStatus
-}));
-
-
   const [formData, setFormData] = useState({
     companyName: '',
     initialStatus: 1,
@@ -33,6 +25,34 @@ const { formState, formStatus } = useSelector(state => ({
     skills: '',
     comments: ''
   });
+
+
+
+
+  const { formState, formStatus } = useSelector(state => ({
+    formState: state.form.interviewList.filter(item => item.initialStatus != 6),
+    formStatus: state.form.fetchStatus
+  }));
+
+
+
+  const handleUpdate = (data) => {
+    setUpdate(true);
+
+    setFormData((prev) => {
+
+      const updatedForm = {};
+      for (const key in prev) {
+
+        updatedForm[key] = data[key] !== undefined ? data[key] : prev[key];
+      }
+      if (data.id) {
+        updatedForm.id = data.id;
+      }
+      return updatedForm;
+    });
+    handleOpen();
+  };
 
 
   useEffect(() => {
@@ -46,27 +66,40 @@ const { formState, formStatus } = useSelector(state => ({
   };
 
 
-
+  const clearForm = () => {
+    setFormData({
+      companyName: '',
+      initialStatus: '',
+      position: '',
+      applicationDate: format(new Date(), 'MMMM dd, yyyy'),
+      skills: ''
+    });
+  }
 
 
   const handleSubmit = async () => {
     try {
-      // Save form data to Firestore
-      const resultAction = await dispatch(saveFormToFirestore(formData));
+      let resultAction;
 
-      if (saveFormToFirestore.fulfilled.match(resultAction)) {
-        // Fetch updated list after saving
+      if (update) {
+        // Update scenario — dispatch updateInterviewForm with id and formData
+        const { id, ...updatedData } = formData;
+
+        resultAction = await dispatch(updateInterviewForm({ id, updatedData }));
+      } else {
+        // Add new form scenario
+        resultAction = await dispatch(saveFormToFirestore(formData));
+      }
+
+      // Check for success in either case
+      if (
+        saveFormToFirestore.fulfilled.match(resultAction) ||
+        updateInterviewForm.fulfilled.match(resultAction)
+      ) {
         dispatch(fetchInterviewsFromFirestore());
-
-        // Reset form and close dialog
-        setFormData({
-          companyName: '',
-          initialStatus: '',
-          position: '',
-          applicationDate: format(new Date(), 'MMMM dd, yyyy'),
-          skills: ''
-        });
         handleClose();
+        clearForm();
+        setUpdate(false)
       } else {
         console.error("Save failed", resultAction.payload);
       }
@@ -78,15 +111,16 @@ const { formState, formStatus } = useSelector(state => ({
 
   return (
     <>
-      <Box onClick={handleOpen} sx={{ textAlign: 'center', background: '#fff', p: 3, borderRadius: 2, boxShadow: 2 }}>
+      <Box onClick={() => { handleOpen(); clearForm() }} sx={{ textAlign: 'center', background: '#fff', p: 3, borderRadius: 2, boxShadow: 2 }}>
         <AddCircleOutlineIcon fontSize='large' color='#866e6e' />
         <Typography>Start by adding your interview to track.</Typography>
-        <Button sx={{ textTransform: 'capitalize',background:'gray' }} variant="contained">Add Interview</Button>
+        <Button sx={{ textTransform: 'capitalize', background: 'gray' }} variant="contained">Add Interview</Button>
       </Box>
       {formState.map((interview) => {
-        return <InterviewList {...interview} />;
+
+        return <InterviewList key={interview.id} {...interview} handleUpdate={handleUpdate} />;
       })}
-      <Box>{formStatus === 'loading' && <CommonSkeleton/>}</Box>
+      <Box>{formStatus === 'loading' && <CommonSkeleton />}</Box>
       <Box>
         <Dialog
           open={open}
@@ -138,6 +172,7 @@ const { formState, formStatus } = useSelector(state => ({
                 <MenuItem value={2}>HR round</MenuItem>
                 <MenuItem value={3}>Technical round</MenuItem>
                 <MenuItem value={4}>management round</MenuItem>
+                <MenuItem value={5}>Offer Received</MenuItem>
               </Select>
 
 
@@ -215,7 +250,7 @@ const { formState, formStatus } = useSelector(state => ({
           </Box>
 
           <Box textAlign={'center'}>
-            <Button onClick={handleSubmit} variant="contained">Submit form</Button>
+            <Button onClick={handleSubmit} variant="contained">{update ? "Update" : "Submit"} form</Button>
           </Box>
         </Dialog>
       </Box>
