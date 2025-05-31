@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { fetchInterviewsFromFirestore, saveFormToFirestore, updateInterviewForm, updateInterviewStatus } from '../Redux/formSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import CloseIcon from '@mui/icons-material/Close';
 
 import InterviewList from './InterviewList';
 import dayjs, { Dayjs } from 'dayjs';
@@ -132,8 +133,9 @@ function ActiveInterview() {
             }
           }}
         >
-          <DialogTitle id="alert-dialog-title">
+          <DialogTitle id="alert-dialog-title" display={'flex'} alignItems={'center'} justifyContent={'space-between'}>
             {"Add New Interview"}
+            <CloseIcon onClick={handleClose} />
           </DialogTitle>
           <Box sx={{ display: 'flex', flexDirection: 'column', m: 2, gap: 2 }}>
 
@@ -250,7 +252,14 @@ function ActiveInterview() {
           </Box>
 
           <Box textAlign={'center'}>
-            <Button onClick={handleSubmit} variant="contained">{update ? "Update" : "Submit"} form</Button>
+            <Button size='small'
+              sx={{
+                color: '#fff',
+                background: '#2a8b8c',
+                fontSize: '0.7rem',
+                textTransform: 'capitalize'
+              }}
+              onClick={handleSubmit} variant="contained">{update ? "Update" : "Submit"} form</Button>
           </Box>
         </Dialog>
       </Box>
