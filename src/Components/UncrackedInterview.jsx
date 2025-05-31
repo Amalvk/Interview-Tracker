@@ -52,7 +52,8 @@ function UncrackedInterview() {
           <Box fontSize={13}>
             <Box fontSize={15} fontWeight={600}> {item.companyName}</Box>
             <Box color={'#ba9e9e'}> {item.position}</Box>
-            <Box pt={.5}>Date : {item.contactNumber}</Box>
+            <Box pt={.5}>Number : {item.contactNumber}</Box>
+            <Box pt={.5}>Name : {item.contactName}</Box>
             <Box>Skills : {item.skills}</Box>
             {item.comments && <Box mt={4}>Comments : {item.comments}</Box>}
             <Box pt={1} fontSize={10} fontWeight={600} color={'#a3acad'}>Date : {item.applicationDate}</Box>
