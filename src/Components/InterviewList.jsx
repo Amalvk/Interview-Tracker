@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { updateInterviewStatus } from '../Redux/formSlice';
 import Snackbar from '@mui/material/Snackbar';
+import CommonButton from './CommonButton';
 
 function InterviewList(props) {
     const { id, companyName, position, applicationDate, skills, initialStatus, contactNumber, comments, contactName, handleUpdate } = props;
@@ -66,69 +67,45 @@ function InterviewList(props) {
                         fullWidth
                         sx={{ fontSize: '0.7rem', height: 25 }}
                     >
-                        <MenuItem value={1}>Applied</MenuItem>
-                        <MenuItem value={2}>HR Round</MenuItem>
-                        <MenuItem value={3}>Technical Round</MenuItem>
-                        <MenuItem value={4}>Management Round</MenuItem>
-                        <MenuItem value={5}>Offer Received</MenuItem>
+                        <MenuItem sx={{ fontSize: '10px' }} value={1}>Applied</MenuItem>
+                        <MenuItem sx={{ fontSize: '10px' }} value={2}>HR Round</MenuItem>
+                        <MenuItem sx={{ fontSize: '10px' }} value={3}>Technical Round</MenuItem>
+                        <MenuItem sx={{ fontSize: '10px' }} value={4}>Management Round</MenuItem>
+                        <MenuItem sx={{ fontSize: '10px' }} value={5}>Offer Received</MenuItem>
                     </Select>
 
                     {/* <Typography> {interviewStatus(initialStatus)}</Typography> */}
                     <Box textAlign={'right'} >
-                        <Button size='small'
+                        <CommonButton
+                            label="Update"
                             variant="contained"
-                            sx={{
-                                mt: 2,
-                                pr: 1,
-                                gap: 1,
-                                textTransform: 'capitalize',
-                                color: '#fff',
-                                background: '#2a8b8c',
-                                height: 20,
-                                fontSize: '0.7rem',
-                            }}
-                            onClick={() => handleUpdate(props)}>
-                            Update
-                        </Button>
+                            color="#fff"
+                            bg="#2a8b8c"
+                            handleClick={() => handleUpdate(props)}  // direct call if no value needed
+                        />
                     </Box>
 
                     <Box textAlign={'right'} >
-                        <Button size='small'
+                        <CommonButton
+                            label="Call"
                             variant="contained"
-                            sx={{
-                                mt: 2,
-                                pr: 1,
-                                gap: 1,
-                                textTransform: 'capitalize',
-                                color: '#fff',
-                                background: '#2a8b8c',
-                                height: 20,
-                                fontSize: '0.7rem',
-                            }}
-                            onClick={() => handleCall(contactNumber)}>
-                            call
-                        </Button>
+                            color="#fff"
+                            bg="#22348c"
+                            handleClick={handleCall}
+                            value={contactNumber}
+                        />
                     </Box>
 
-
                     <Box textAlign={'right'} >
-                        <Button size='small'
+                        <CommonButton
+                            label="Decline"
                             variant="outlined"
-                            sx={{
-                                mt: 2,
-                                pr: 1,
-                                fontWeight: 600,
-                                textTransform: 'capitalize',
-                                borderColor: '#e29e55',
-                                color: 'red',
-                                height: 20,
-                                fontSize: '0.7rem',
-                            }}
-                            onClick={() => handleStatusChange(6)}>
-                            Decline
-                        </Button>
+                            color="red"
+                            borderColor="#e29e55"
+                            handleClick={handleStatusChange}
+                            value={6}
+                        />
                     </Box>
-
 
                 </Box>
             </Box>

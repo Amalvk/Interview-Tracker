@@ -2,6 +2,7 @@ import { Box, Button, Typography } from '@mui/material'
 import { useDispatch, useSelector } from 'react-redux';
 import DeleteIcon from "@mui/icons-material/Delete";
 import { deleteInterviewById, fetchInterviewsFromFirestore, updateInterviewStatus } from '../Redux/formSlice';
+import CommonButton from './CommonButton';
 
 function UncrackedInterview() {
 
@@ -60,38 +61,29 @@ function UncrackedInterview() {
 
           </Box>
           <Box>
-            <Box textAlign={'right'}>
-              <Button
-                variant="contained"
-                sx={{
-                  color: '#fff',
-                  background: '#2a8b8c',
-                  height: 20,
-                  fontSize: '0.7rem',
-                  fontWeight: 600,
-                  textTransform: 'capitalize'
-                }}
-                size='small'
-                onClick={() => handleStatusChange(item.id, 1)}>
-                Activate
-              </Button>
-            </Box>
+
             <Box textAlign={'right'} >
-              <Button size='small' variant="outlined"
-                sx={{
-                  mt: 2,
-                  pr: 0,
-                  borderColor: '#e29e55',
-                  color: '#d87849',
-                  fontWeight: 600,
-                  height: 20,
-                  fontSize: '0.7rem',
-                  textTransform: 'capitalize'
-                }}
-                onClick={() => handleDelete(item.id)}>
-                Delete
-                <DeleteIcon sx={{ fontSize: 15 }} />
-              </Button>
+              <CommonButton
+                label="Activate"
+                variant="contained"
+                color="#fff"
+                bg="#2a8b8c"
+                handleClick={(id) => handleStatusChange(id, 1)}
+                value={item.id}
+              />
+            </Box>
+
+            <Box textAlign={'right'}>
+              <CommonButton
+                label="Delete"
+                variant="outlined"
+                color="#d87849"
+                borderColor="#e29e55"
+                handleClick={handleDelete}
+                value={item.id}
+                icon={<DeleteIcon sx={{ fontSize: 15 }} />}
+                sx={{ pr: 0 }}
+              />
             </Box>
 
           </Box>
