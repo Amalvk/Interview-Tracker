@@ -5,7 +5,7 @@ import { updateInterviewStatus } from '../Redux/formSlice';
 import Snackbar from '@mui/material/Snackbar';
 
 function InterviewList(props) {
-    const { id, companyName, position, applicationDate, skills, initialStatus, contactNumber, comments, contactName,handleUpdate } = props;
+    const { id, companyName, position, applicationDate, skills, initialStatus, contactNumber, comments, contactName, handleUpdate } = props;
 
     const [open, setOpen] = useState(false);
     const dispatch = useDispatch();
@@ -14,6 +14,11 @@ function InterviewList(props) {
         dispatch(updateInterviewStatus({ id, newStatus }));
         setOpen(true);
     };
+
+    const handleCall = (mobile) => {
+        window.location.href = `tel:${mobile}`;
+    };
+
 
     return (
         <Box
@@ -50,7 +55,7 @@ function InterviewList(props) {
                     {contactName && <Box display={'flex'}>HR Name :  {contactName}</Box>}
                     <Box>Skills : {skills}</Box>
                     {comments && <Box mt={4}>Comments : {comments}</Box>}
-                    <Box  pt={1} fontSize={10} fontWeight={600} color={'#a3acad'}>Date : {applicationDate}</Box>
+                    <Box pt={1} fontSize={10} fontWeight={600} color={'#a3acad'}>Date : {applicationDate}</Box>
 
                 </Box>
                 <Box>
@@ -89,11 +94,30 @@ function InterviewList(props) {
 
                     <Box textAlign={'right'} >
                         <Button size='small'
+                            variant="contained"
+                            sx={{
+                                mt: 2,
+                                pr: 1,
+                                gap: 1,
+                                textTransform: 'capitalize',
+                                color: '#fff',
+                                background: '#2a8b8c',
+                                height: 20,
+                                fontSize: '0.7rem',
+                            }}
+                            onClick={() => handleCall(contactNumber)}>
+                            call
+                        </Button>
+                    </Box>
+
+
+                    <Box textAlign={'right'} >
+                        <Button size='small'
                             variant="outlined"
                             sx={{
                                 mt: 2,
                                 pr: 1,
-                                fontWeight:600,
+                                fontWeight: 600,
                                 textTransform: 'capitalize',
                                 borderColor: '#e29e55',
                                 color: 'red',
