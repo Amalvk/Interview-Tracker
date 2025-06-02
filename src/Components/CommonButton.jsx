@@ -10,7 +10,6 @@ function CommonButton({ label, handleClick, value, variant, color, bg, borderCol
                 sx={{
                     mt: 2,
                     pr: 1,
-                    gap: 1,
                     textTransform: "capitalize",
                     height: 20,
                     fontSize: "0.7rem",
