@@ -117,8 +117,7 @@ function ActiveInterview() {
         <Typography>Start by adding your interview to track.</Typography>
         <Button sx={{ textTransform: 'capitalize', background: 'gray' }} variant="contained">Add Interview</Button>
       </Box>
-      {formState.map((interview) => {
-
+      {formState.sort((a, b) => new Date(b.applicationDate) - new Date(a.applicationDate)).map((interview) => {
         return <InterviewList key={interview.id} {...interview} handleUpdate={handleUpdate} />;
       })}
       <Box>{formStatus === 'loading' && <CommonSkeleton />}</Box>
