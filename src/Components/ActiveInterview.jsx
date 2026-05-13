@@ -1,20 +1,50 @@
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, MenuItem, Select, TextField, Typography } from '@mui/material';
+import { Box, Button, Dialog, DialogTitle, IconButton, List, ListItem, MenuItem, Select, TextField, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
-import { fetchInterviewsFromFirestore, saveFormToFirestore, updateInterviewForm, updateInterviewStatus } from '../Redux/formSlice';
+import { fetchInterviewsFromFirestore, saveFormToFirestore, updateInterviewForm } from '../Redux/formSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import CloseIcon from '@mui/icons-material/Close';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 
 import InterviewList from './InterviewList';
-import dayjs, { Dayjs } from 'dayjs';
 import { format } from 'date-fns';
 import CommonSkeleton from './Skelton';
+
+function formatCommentDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? '' : format(d, 'MMM d, yyyy · h:mm a');
+}
+
+function normalizeCommentList(data) {
+  if (Array.isArray(data.commentList)) {
+    return data.commentList.map((c) => ({
+      id: c.id ?? Date.now() + Math.random(),
+      text: c.text ?? '',
+      createdAt: c.createdAt || new Date().toISOString(),
+    }));
+  }
+  if (data.comments) {
+    return [
+      {
+        id: Date.now(),
+        text: String(data.comments),
+        createdAt: new Date().toISOString(),
+      },
+    ];
+  }
+  return [];
+}
 
 function ActiveInterview() {
   const [open, setOpen] = useState(false);
   const [update, setUpdate] = useState(false);
   const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
+  const handleClose = () => {
+    setOpen(false);
+    setDraftComment('');
+    setUpdate(false);
+  };
   const dispatch = useDispatch();
   const [formData, setFormData] = useState({
     companyName: '',
@@ -22,10 +52,11 @@ function ActiveInterview() {
     position: '',
     contactNumber: '',
     contactName: '',
-    applicationDate: format(new Date(), 'MMMM dd, yyyy') || dayjs(new Date()),
+    applicationDate: format(new Date(), 'MMMM dd, yyyy'),
     skills: '',
-    comments: ''
+    commentList: [],
   });
+  const [draftComment, setDraftComment] = useState('');
 
 
 
@@ -36,15 +67,16 @@ function ActiveInterview() {
   }));
 
 
-
   const handleUpdate = (data) => {
     setUpdate(true);
-
+    setDraftComment('');
     setFormData((prev) => {
-
       const updatedForm = {};
       for (const key in prev) {
-
+        if (key === 'commentList') {
+          updatedForm.commentList = normalizeCommentList(data);
+          continue;
+        }
         updatedForm[key] = data[key] !== undefined ? data[key] : prev[key];
       }
       if (data.id) {
@@ -53,6 +85,35 @@ function ActiveInterview() {
       return updatedForm;
     });
     handleOpen();
+  };
+
+  const addCommentEntry = () => {
+    const text = draftComment.trim();
+    if (!text) return;
+    setFormData((prev) => ({
+      ...prev,
+      commentList: [
+        ...(prev.commentList || []),
+        { id: Date.now(), text, createdAt: new Date().toISOString() },
+      ],
+    }));
+    setDraftComment('');
+  };
+
+  const updateCommentText = (commentId, text) => {
+    setFormData((prev) => ({
+      ...prev,
+      commentList: (prev.commentList || []).map((c) =>
+        c.id === commentId ? { ...c, text } : c
+      ),
+    }));
+  };
+
+  const removeComment = (commentId) => {
+    setFormData((prev) => ({
+      ...prev,
+      commentList: (prev.commentList || []).filter((c) => c.id !== commentId),
+    }));
   };
 
 
@@ -68,12 +129,17 @@ function ActiveInterview() {
 
 
   const clearForm = () => {
+    setUpdate(false);
+    setDraftComment('');
     setFormData({
       companyName: '',
-      initialStatus: '',
+      initialStatus: 1,
       position: '',
       applicationDate: format(new Date(), 'MMMM dd, yyyy'),
-      skills: ''
+      contactNumber: '',
+      contactName: '',
+      skills: '',
+      commentList: [],
     });
   }
 
@@ -83,13 +149,12 @@ function ActiveInterview() {
       let resultAction;
 
       if (update) {
-        // Update scenario — dispatch updateInterviewForm with id and formData
         const { id, ...updatedData } = formData;
-
         resultAction = await dispatch(updateInterviewForm({ id, updatedData }));
       } else {
-        // Add new form scenario
-        resultAction = await dispatch(saveFormToFirestore(formData));
+        resultAction = await dispatch(
+          saveFormToFirestore({ ...formData, commentList: formData.commentList || [] })
+        );
       }
 
       // Check for success in either case
@@ -137,7 +202,6 @@ function ActiveInterview() {
             <CloseIcon onClick={handleClose} />
           </DialogTitle>
           <Box sx={{ display: 'flex', flexDirection: 'column', m: 2, gap: 2 }}>
-
             <Box>
               <Typography fontWeight={600} fontSize={15}>Company Name</Typography>
               <TextField
@@ -236,17 +300,66 @@ function ActiveInterview() {
 
             <Box>
               <Typography fontWeight={600} fontSize={15}>Comments</Typography>
-              <TextField
-                name="comments"
-                value={formData.comments}
-                onChange={handleChange}
-                size='small'
-                variant="outlined"
-                placeholder=" "
-                fullWidth
-                multiline
-                rows={2}
-              />
+              <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
+                <TextField
+                  size="small"
+                  variant="outlined"
+                  placeholder="Add a note…"
+                  fullWidth
+                  multiline
+                  minRows={1}
+                  value={draftComment}
+                  onChange={(e) => setDraftComment(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      addCommentEntry();
+                    }
+                  }}
+                />
+                <Button
+                  size="small"
+                  variant="outlined"
+                  sx={{ textTransform: 'none', flexShrink: 0, alignSelf: 'flex-start' }}
+                  onClick={addCommentEntry}
+                >
+                  Add
+                </Button>
+              </Box>
+              <List dense disablePadding sx={{ maxHeight: 220, overflow: 'auto', border: '1px solid #eee', borderRadius: 1, p: 0.5 }}>
+                {[...(formData.commentList || [])]
+                  .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                  .map((c) => (
+                    <ListItem key={c.id} disableGutters sx={{ display: 'block', py: 1, px: 1 }}>
+                      <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 0.5 }}>
+                            {formatCommentDate(c.createdAt)}
+                          </Typography>
+                          <TextField
+                            size="small"
+                            fullWidth
+                            multiline
+                            minRows={1}
+                            value={c.text}
+                            onChange={(e) => updateCommentText(c.id, e.target.value)}
+                            variant="outlined"
+                          />
+                        </Box>
+                        <IconButton size="small" aria-label="delete comment" onClick={() => removeComment(c.id)} sx={{ mt: 2 }}>
+                          <DeleteOutlineIcon fontSize="small" />
+                        </IconButton>
+                      </Box>
+                    </ListItem>
+                  ))}
+                {!(formData.commentList || []).length && (
+                  <ListItem>
+                    <Typography variant="body2" color="text.secondary">
+                      No notes yet. Add one above.
+                    </Typography>
+                  </ListItem>
+                )}
+              </List>
             </Box>
           </Box>
 

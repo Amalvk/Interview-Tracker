@@ -1,9 +1,25 @@
-import { Box, Button, Typography } from '@mui/material'
+import { Box, Typography } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
-import DeleteIcon from "@mui/icons-material/Delete";
+import { format } from 'date-fns';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { deleteInterviewById, fetchInterviewsFromFirestore, updateInterviewStatus } from '../Redux/formSlice';
 import CommonButton from './CommonButton';
 
+function getNotesForDisplay({ commentList, comments }) {
+  if (Array.isArray(commentList) && commentList.length) {
+    return [...commentList].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  }
+  if (comments) {
+    return [{ id: 'legacy', text: String(comments), createdAt: null }];
+  }
+  return [];
+}
+
+function formatNoteDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? '' : format(d, 'MMM d, yyyy');
+}
 function UncrackedInterview() {
 
   const formState = useSelector(state => state.form.interviewList.filter(item => item.initialStatus == 6));
@@ -22,6 +38,7 @@ function UncrackedInterview() {
 
   return (
     <>{formState.map((item) => {
+      const notes = getNotesForDisplay(item);
 
       return (<Box
         // key={id}
@@ -56,7 +73,21 @@ function UncrackedInterview() {
             <Box pt={.5}>Number : {item.contactNumber}</Box>
             <Box pt={.5}>Name : {item.contactName}</Box>
             <Box>Skills : {item.skills}</Box>
-            {item.comments && <Box mt={4}>Comments : {item.comments}</Box>}
+            {notes.length > 0 && (
+              <Box mt={2}>
+                <Typography fontWeight={600} fontSize={12} color="text.secondary">Notes</Typography>
+                {notes.map((n) => (
+                  <Box key={n.id} fontSize={12} sx={{ mt: 0.5, pl: 0.5, borderLeft: '2px solid #e0e0e0' }}>
+                    {n.createdAt && (
+                      <Typography component="span" variant="caption" color="text.secondary" sx={{ mr: 1 }}>
+                        {formatNoteDate(n.createdAt)}
+                      </Typography>
+                    )}
+                    {n.text}
+                  </Box>
+                ))}
+              </Box>
+            )}
             <Box pt={1} fontSize={10} fontWeight={600} color={'#a3acad'}>Date : {item.applicationDate}</Box>
 
           </Box>

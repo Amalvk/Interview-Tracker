@@ -1,14 +1,32 @@
-import { Box, Button, MenuItem, Select, Typography } from '@mui/material';
-import React, { useState } from 'react';
+import { Box, MenuItem, Select, Typography } from '@mui/material';
+import React, { useMemo, useState } from 'react';
 import { useDispatch } from 'react-redux';
+import { format } from 'date-fns';
 import { updateInterviewStatus } from '../Redux/formSlice';
 import Snackbar from '@mui/material/Snackbar';
 import CommonButton from './CommonButton';
 
+function getNotesForDisplay({ commentList, comments }) {
+  if (Array.isArray(commentList) && commentList.length) {
+    return [...commentList].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  }
+  if (comments) {
+    return [{ id: 'legacy', text: String(comments), createdAt: null }];
+  }
+  return [];
+}
+
+function formatNoteDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? '' : format(d, 'MMM d, yyyy');
+}
+
 function InterviewList(props) {
-    const { id, companyName, position, applicationDate, skills, initialStatus, contactNumber, comments, contactName, handleUpdate } = props;
+    const { id, companyName, position, applicationDate, skills, initialStatus, contactNumber, commentList, comments, contactName, handleUpdate } = props;
 
     const [open, setOpen] = useState(false);
+    const notes = useMemo(() => getNotesForDisplay({ commentList, comments }), [commentList, comments]);
     const dispatch = useDispatch();
 
     const handleStatusChange = (newStatus) => {
@@ -55,7 +73,21 @@ function InterviewList(props) {
                     <Box pt={.5}>Contact : {contactNumber}</Box>
                     {contactName && <Box display={'flex'}>HR Name :  {contactName}</Box>}
                     <Box>Skills : {skills}</Box>
-                    {comments && <Box mt={4}>Comments : {comments}</Box>}
+                    {notes.length > 0 && (
+                        <Box mt={2}>
+                            <Typography fontWeight={600} fontSize={12} color="text.secondary">Notes</Typography>
+                            {notes.map((n) => (
+                                <Box key={n.id} fontSize={12} sx={{ mt: 0.5, pl: 0.5, borderLeft: '2px solid #e0e0e0' }}>
+                                    {n.createdAt && (
+                                        <Typography component="span" variant="caption" color="text.secondary" sx={{ mr: 1 }}>
+                                            {formatNoteDate(n.createdAt)}
+                                        </Typography>
+                                    )}
+                                    {n.text}
+                                </Box>
+                            ))}
+                        </Box>
+                    )}
                     <Box pt={1} fontSize={10} fontWeight={600} color={'#a3acad'}>Date : {applicationDate}</Box>
 
                 </Box>
