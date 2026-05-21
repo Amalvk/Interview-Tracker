@@ -1,10 +1,14 @@
 import { Box, MenuItem, Select, Typography } from '@mui/material';
+import PhoneIcon from '@mui/icons-material/Phone';
+import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import React, { useMemo, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { format } from 'date-fns';
 import { updateInterviewStatus } from '../Redux/formSlice';
 import Snackbar from '@mui/material/Snackbar';
 import CommonButton from './CommonButton';
+import ConfirmWarningModal from './ConfirmWarningModal';
+import { ACTIONS_COLUMN_WIDTH, actionsColumnSx } from './cardLayout';
 
 function getNotesForDisplay({ commentList, comments }) {
   if (Array.isArray(commentList) && commentList.length) {
@@ -25,17 +29,40 @@ function formatNoteDate(iso) {
 function InterviewList(props) {
     const { id, companyName, position, applicationDate, skills, initialStatus, contactNumber, commentList, comments, contactName, handleUpdate } = props;
 
-    const [open, setOpen] = useState(false);
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [contactVia, setContactVia] = useState('');
     const notes = useMemo(() => getNotesForDisplay({ commentList, comments }), [commentList, comments]);
     const dispatch = useDispatch();
 
     const handleStatusChange = (newStatus) => {
         dispatch(updateInterviewStatus({ id, newStatus }));
-        setOpen(true);
+        setSnackbarOpen(true);
+    };
+
+    const handleDeclineClick = () => {
+        setConfirmOpen(true);
+    };
+
+    const confirmDecline = () => {
+        handleStatusChange(6);
     };
 
     const handleCall = (mobile) => {
         window.location.href = `tel:${mobile}`;
+    };
+
+    const handleWhatsApp = (mobile) => {
+        const digits = String(mobile || '').replace(/\D/g, '');
+        if (!digits) return;
+        window.open(`https://wa.me/${digits}`, '_blank', 'noopener,noreferrer');
+    };
+
+    const handleContactViaChange = (e) => {
+        const method = e.target.value;
+        if (method === 'call') handleCall(contactNumber);
+        if (method === 'whatsapp') handleWhatsApp(contactNumber);
+        setContactVia('');
     };
 
 
@@ -43,31 +70,38 @@ function InterviewList(props) {
         <Box
             key={id}
             sx={{
+                width: '100%',
+                maxWidth: '100%',
                 borderRadius: 2,
                 boxShadow: 2,
                 transition: 'box-shadow 0.3s ease',
                 '&:hover': {
-                    boxShadow: 6, // stronger shadow on hover
-                    cursor: 'pointer', // optional, shows pointer on hover
+                    boxShadow: 6,
+                    cursor: 'pointer',
                 },
             }}
         >
             <Box
+                onClick={() => handleUpdate(props)}
                 sx={{
                     background: '#fff',
                     mt: 3,
                     p: "20px 10px 20px 20px",
                     display: 'flex',
                     justifyContent: 'space-between',
+                    alignItems: 'flex-start',
+                    gap: 2,
+                    width: '100%',
                     borderRadius: 2,
                     boxShadow: 2,
                     transition: 'box-shadow 0.3s ease',
+                    cursor: 'pointer',
                     '&:hover': {
                         boxShadow: 8,
                     },
                 }}
             >
-                <Box fontSize={13}>
+                <Box fontSize={13} sx={{ flex: 1, minWidth: 0 }}>
                     <Box fontSize={15} fontWeight={600}>{companyName}</Box>
                     <Box color={'#ba9e9e'} fontWeight={600}> {position}</Box>
                     <Box pt={.5}>Contact : {contactNumber}</Box>
@@ -91,10 +125,10 @@ function InterviewList(props) {
                     <Box pt={1} fontSize={10} fontWeight={600} color={'#a3acad'}>Date : {applicationDate}</Box>
 
                 </Box>
-                <Box>
+                <Box onClick={(e) => e.stopPropagation()} sx={actionsColumnSx}>
                     <Select
-                        value={initialStatus}               // value must be a number (1,2,3,...)
-                        onChange={(e) => { handleStatusChange(e.target.value) }}      // handle user selection
+                        value={initialStatus}
+                        onChange={(e) => { handleStatusChange(e.target.value) }}
                         size="small"
                         fullWidth
                         sx={{ fontSize: '0.7rem', height: 25 }}
@@ -106,46 +140,108 @@ function InterviewList(props) {
                         <MenuItem sx={{ fontSize: '10px' }} value={5}>Offer Received</MenuItem>
                     </Select>
 
-                    {/* <Typography> {interviewStatus(initialStatus)}</Typography> */}
-                    <Box textAlign={'right'} >
-                        <CommonButton
-                            label="Update"
-                            variant="contained"
-                            color="#fff"
-                            bg="#2a8b8c"
-                            handleClick={() => handleUpdate(props)}  // direct call if no value needed
-                        />
-                    </Box>
+                    <Select
+                        displayEmpty
+                        value={contactVia}
+                        onChange={handleContactViaChange}
+                        size="small"
+                        fullWidth
+                        sx={{ fontSize: '0.7rem', height: 25, mt: 2 }}
+                        MenuProps={{
+                            PaperProps: {
+                                sx: {
+                                    p: 0.5,
+                                    bgcolor: '#f5f5f5',
+                                    minWidth: ACTIONS_COLUMN_WIDTH,
+                                    maxWidth: ACTIONS_COLUMN_WIDTH,
+                                },
+                            },
+                        }}
+                        renderValue={(selected) => {
+                            if (selected === 'call') {
+                                return (
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                                        <PhoneIcon sx={{ fontSize: 14 }} />
+                                        Call
+                                    </Box>
+                                );
+                            }
+                            if (selected === 'whatsapp') {
+                                return (
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                                        <WhatsAppIcon sx={{ fontSize: 14 }} />
+                                        WhatsApp
+                                    </Box>
+                                );
+                            }
+                            return 'Contact via';
+                        }}
+                    >
+                        <MenuItem
+                            value="call"
+                            sx={{
+                                fontSize: '10px',
+                                bgcolor: '#22348c',
+                                color: '#fff',
+                                mb: 0.5,
+                                borderRadius: 1,
+                                '&:hover': { bgcolor: '#1a2a70' },
+                                '&.Mui-selected': { bgcolor: '#22348c', color: '#fff' },
+                                '&.Mui-selected:hover': { bgcolor: '#1a2a70' },
+                            }}
+                        >
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                                <PhoneIcon sx={{ fontSize: 14 }} />
+                                Call
+                            </Box>
+                        </MenuItem>
+                        <MenuItem
+                            value="whatsapp"
+                            sx={{
+                                fontSize: '10px',
+                                bgcolor: '#18ad4f',
+                                color: '#fff',
+                                borderRadius: 1,
+                                '&:hover': { bgcolor: '#149643' },
+                                '&.Mui-selected': { bgcolor: '#18ad4f', color: '#fff' },
+                                '&.Mui-selected:hover': { bgcolor: '#149643' },
+                            }}
+                        >
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                                <WhatsAppIcon sx={{ fontSize: 14 }} />
+                                WhatsApp
+                            </Box>
+                        </MenuItem>
+                    </Select>
 
-                    <Box textAlign={'right'} >
-                        <CommonButton
-                            label="Call"
-                            variant="contained"
-                            color="#fff"
-                            bg="#22348c"
-                            handleClick={handleCall}
-                            value={contactNumber}
-                        />
-                    </Box>
-
-                    <Box textAlign={'right'} >
+                    <Box textAlign={'right'} sx={{ width: '100%' }}>
                         <CommonButton
                             label="Decline"
                             variant="outlined"
                             color="red"
                             borderColor="#e29e55"
-                            handleClick={handleStatusChange}
-                            value={6}
+                            handleClick={handleDeclineClick}
+                            sx={{ width: '100%' }}
                         />
                     </Box>
 
                 </Box>
             </Box>
 
+            <ConfirmWarningModal
+                open={confirmOpen}
+                onClose={() => setConfirmOpen(false)}
+                onConfirm={confirmDecline}
+                title="Decline interview?"
+                message={`Move "${companyName}" to the declined list? You can reactivate it later from Uncracked.`}
+                confirmLabel="Decline"
+                cancelLabel="Cancel"
+            />
+
             <Snackbar
-                open={open}
+                open={snackbarOpen}
                 autoHideDuration={3000}
-                onClose={() => setOpen(false)}
+                onClose={() => setSnackbarOpen(false)}
                 message={`${companyName}'s interview status changed !!`}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
             />

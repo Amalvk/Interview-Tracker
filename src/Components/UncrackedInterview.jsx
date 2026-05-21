@@ -1,9 +1,12 @@
 import { Box, Typography } from '@mui/material';
+import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { format } from 'date-fns';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { deleteInterviewById, fetchInterviewsFromFirestore, updateInterviewStatus } from '../Redux/formSlice';
 import CommonButton from './CommonButton';
+import ConfirmWarningModal from './ConfirmWarningModal';
+import { actionsColumnSx } from './cardLayout';
 
 function getNotesForDisplay({ commentList, comments }) {
   if (Array.isArray(commentList) && commentList.length) {
@@ -20,14 +23,31 @@ function formatNoteDate(iso) {
   const d = new Date(iso);
   return Number.isNaN(d.getTime()) ? '' : format(d, 'MMM d, yyyy');
 }
+
 function UncrackedInterview() {
 
   const formState = useSelector(state => state.form.interviewList.filter(item => item.initialStatus == 6));
   const dispatch = useDispatch();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState(null);
+
+  const pendingItem = formState.find((item) => item.id === pendingDeleteId);
 
   const handleDelete = (nodeId) => {
     dispatch(deleteInterviewById({ nodeId }));
     dispatch(fetchInterviewsFromFirestore())
+  };
+
+  const handleDeleteClick = (nodeId) => {
+    setPendingDeleteId(nodeId);
+    setConfirmOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (pendingDeleteId) {
+      handleDelete(pendingDeleteId);
+      setPendingDeleteId(null);
+    }
   };
 
   const handleStatusChange = (id, newStatus) => {
@@ -41,14 +61,16 @@ function UncrackedInterview() {
       const notes = getNotesForDisplay(item);
 
       return (<Box
-        // key={id}
+        key={item.id}
         sx={{
+          width: '100%',
+          maxWidth: '100%',
           borderRadius: 2,
           boxShadow: 2,
           transition: 'box-shadow 0.3s ease',
           '&:hover': {
-            boxShadow: 6, // stronger shadow on hover
-            cursor: 'pointer', // optional, shows pointer on hover
+            boxShadow: 6,
+            cursor: 'pointer',
           },
         }}
       >
@@ -59,6 +81,9 @@ function UncrackedInterview() {
             p: 3,
             display: 'flex',
             justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            gap: 2,
+            width: '100%',
             borderRadius: 2,
             boxShadow: 2,
             transition: 'box-shadow 0.3s ease',
@@ -67,7 +92,7 @@ function UncrackedInterview() {
             },
           }}
         >
-          <Box fontSize={13}>
+          <Box fontSize={13} sx={{ flex: 1, minWidth: 0 }}>
             <Box fontSize={15} fontWeight={600}> {item.companyName}</Box>
             <Box color={'#ba9e9e'}> {item.position}</Box>
             <Box pt={.5}>Number : {item.contactNumber}</Box>
@@ -91,9 +116,8 @@ function UncrackedInterview() {
             <Box pt={1} fontSize={10} fontWeight={600} color={'#a3acad'}>Date : {item.applicationDate}</Box>
 
           </Box>
-          <Box>
-
-            <Box textAlign={'right'} >
+          <Box sx={actionsColumnSx}>
+            <Box textAlign={'right'} sx={{ width: '100%' }}>
               <CommonButton
                 label="Activate"
                 variant="contained"
@@ -101,26 +125,43 @@ function UncrackedInterview() {
                 bg="#2a8b8c"
                 handleClick={(id) => handleStatusChange(id, 1)}
                 value={item.id}
+                sx={{ width: '100%' }}
               />
             </Box>
 
-            <Box textAlign={'right'}>
+            <Box textAlign={'right'} sx={{ width: '100%' }}>
               <CommonButton
                 label="Delete"
                 variant="outlined"
                 color="#d87849"
                 borderColor="#e29e55"
-                handleClick={handleDelete}
+                handleClick={handleDeleteClick}
                 value={item.id}
                 icon={<DeleteIcon sx={{ fontSize: 15 }} />}
-                sx={{ pr: 0 }}
+                sx={{ width: '100%', pr: 0 }}
               />
             </Box>
-
           </Box>
         </Box>
       </Box>)
     })}
+
+      <ConfirmWarningModal
+        open={confirmOpen}
+        onClose={() => {
+          setConfirmOpen(false);
+          setPendingDeleteId(null);
+        }}
+        onConfirm={confirmDelete}
+        title="Delete interview?"
+        message={
+          pendingItem
+            ? `Permanently delete "${pendingItem.companyName}"? This cannot be undone.`
+            : 'Permanently delete this interview? This cannot be undone.'
+        }
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+      />
     </>)
 }
 
