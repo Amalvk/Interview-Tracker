@@ -80,10 +80,10 @@ function UncrackedInterview() {
             mt: 3,
             p: 3,
             display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            gap: 2,
+            flexDirection: 'column',
+            gap: 1.5,
             width: '100%',
+            boxSizing: 'border-box',
             borderRadius: 2,
             boxShadow: 2,
             transition: 'box-shadow 0.3s ease',
@@ -92,29 +92,21 @@ function UncrackedInterview() {
             },
           }}
         >
-          <Box fontSize={13} sx={{ flex: 1, minWidth: 0 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              gap: 2,
+              width: '100%',
+            }}
+          >
+          <Box sx={{ flex: 1, minWidth: 0, fontSize: 13 }}>
             <Box fontSize={15} fontWeight={600}> {item.companyName}</Box>
             <Box color={'#ba9e9e'}> {item.position}</Box>
             <Box pt={.5}>Number : {item.contactNumber}</Box>
             <Box pt={.5}>Name : {item.contactName}</Box>
             <Box>Skills : {item.skills}</Box>
-            {notes.length > 0 && (
-              <Box mt={2}>
-                <Typography fontWeight={600} fontSize={12} color="text.secondary">Notes</Typography>
-                {notes.map((n) => (
-                  <Box key={n.id} fontSize={12} sx={{ mt: 0.5, pl: 0.5, borderLeft: '2px solid #e0e0e0' }}>
-                    {n.createdAt && (
-                      <Typography component="span" variant="caption" color="text.secondary" sx={{ mr: 1 }}>
-                        {formatNoteDate(n.createdAt)}
-                      </Typography>
-                    )}
-                    {n.text}
-                  </Box>
-                ))}
-              </Box>
-            )}
-            <Box pt={1} fontSize={10} fontWeight={600} color={'#a3acad'}>Date : {item.applicationDate}</Box>
-
           </Box>
           <Box sx={actionsColumnSx}>
             <Box textAlign={'right'} sx={{ width: '100%' }}>
@@ -141,6 +133,54 @@ function UncrackedInterview() {
                 sx={{ width: '100%', pr: 0 }}
               />
             </Box>
+          </Box>
+          </Box>
+
+          {notes.length > 0 && (
+            <Box sx={{ width: '100%', alignSelf: 'stretch', boxSizing: 'border-box' }}>
+              <Typography fontWeight={600} fontSize={12} color="text.secondary">Notes</Typography>
+              {notes.map((n) => (
+                <Box
+                  key={n.id}
+                  sx={{
+                    mt: 0.5,
+                    pl: 1,
+                    width: '100%',
+                    maxWidth: '100%',
+                    borderLeft: '2px solid #e0e0e0',
+                    boxSizing: 'border-box',
+                  }}
+                >
+                  {n.createdAt && (
+                    <Typography
+                      component="div"
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ fontSize: 12, mb: 0.25, display: 'block' }}
+                    >
+                      {formatNoteDate(n.createdAt)}
+                    </Typography>
+                  )}
+                  <Typography
+                    component="div"
+                    sx={{
+                      fontSize: 12,
+                      display: 'block',
+                      width: '100%',
+                      maxWidth: '100%',
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-word',
+                    }}
+                  >
+                    {n.text}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          )}
+
+          <Box sx={{ fontSize: 10, fontWeight: 600, color: '#a3acad', width: '100%' }}>
+            Date : {item.applicationDate}
           </Box>
         </Box>
       </Box>)
