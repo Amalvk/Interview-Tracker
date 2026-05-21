@@ -14,8 +14,8 @@ export default function InterviewCard() {
     };
 
     return (
-        <Box sx={{ mt: 5, mx: { xs: 2, md: 10 } }}>
-            <Box sx={{ borderBottom: 1, borderColor: 'divider', mx: 2, borderRadius: '8px' }}>
+        <Box sx={{ mt: 5, mx: {xs: 2, md: 10 } }}>
+            <Box sx={{ borderBottom: 1, borderColor: 'divider', borderRadius: '8px' }}>
                 <Tabs
                     value={value}
                     onChange={handleChange}
@@ -45,7 +45,7 @@ export default function InterviewCard() {
                 </Tabs>
             </Box>
 
-            <Box sx={{ m: 2 }}>
+            <Box sx={{ mt: 2 }}>
                 {value === 0 && <Box ><ActiveInterview /></Box>}
                 {value === 1 && <Box ><UncrackedInterview /></Box>}
                 {value === 2 && <Box ><Topics /></Box>}
