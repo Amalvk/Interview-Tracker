@@ -18,7 +18,6 @@ import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import ReplayIcon from '@mui/icons-material/Replay';
 import EmojiEventsOutlinedIcon from '@mui/icons-material/EmojiEventsOutlined';
@@ -32,7 +31,6 @@ import { formatRelativeTime } from '../../utils/interviewUtils';
 function RowActions({
   interview,
   variant,
-  onView,
   onEdit,
   onDecline,
   onActivate,
@@ -43,13 +41,7 @@ function RowActions({
   const [menuAnchor, setMenuAnchor] = useState(null);
 
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.25 }}>
-      <Tooltip title="View">
-        <IconButton size="small" aria-label={`View ${interview.companyName}`} onClick={() => onView?.(interview)}>
-          <VisibilityOutlinedIcon fontSize="small" />
-        </IconButton>
-      </Tooltip>
-
+    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.25 }} onClick={(e) => e.stopPropagation()}>
       {variant === 'active' && (
         <>
           <Tooltip title="Edit">
@@ -139,10 +131,10 @@ export default function InterviewTable({
   onMarkNoResponse,
 }) {
   return (
-    <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 3 }}>
+    <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 1 }}>
       <Table size="small" sx={{ minWidth: 760 }} aria-label="Interviews table">
         <TableHead>
-          <TableRow>
+          <TableRow sx={{ '& th': { fontSize: { xs: '0.72rem', sm: '0.8125rem' }, whiteSpace: 'nowrap' } }}>
             <TableCell>Company &amp; Position</TableCell>
             <TableCell>Status{variant !== 'active' ? ' / Was' : ''}</TableCell>
             <TableCell>HR / Contact</TableCell>
@@ -153,7 +145,12 @@ export default function InterviewTable({
         </TableHead>
         <TableBody>
           {interviews.map((interview) => (
-            <TableRow key={interview.id} hover>
+            <TableRow
+              key={interview.id}
+              hover
+              onClick={() => onView?.(interview)}
+              sx={{ cursor: 'pointer' }}
+            >
               <TableCell sx={{ maxWidth: 220 }}>
                 <Typography variant="body2" fontWeight={700} noWrap>
                   {interview.companyName}
@@ -163,17 +160,25 @@ export default function InterviewTable({
                 </Typography>
               </TableCell>
 
-              <TableCell sx={{ minWidth: 168 }}>
+              <TableCell sx={{ minWidth: { xs: 108, sm: 168 }, py: { xs: 0.5, sm: 1 } }}>
                 {variant === 'active' ? (
                   <Select
                     value={interview.initialStatus}
                     onChange={(e) => onQuickStatusChange?.(interview.id, e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
                     size="small"
                     aria-label={`Change status for ${interview.companyName}`}
-                    sx={{ fontSize: '0.8rem', minWidth: 160 }}
+                    sx={{
+                      fontSize: { xs: '0.68rem', sm: '0.8rem' },
+                      minWidth: { xs: 100, sm: 160 },
+                      '& .MuiSelect-select': {
+                        py: { xs: 0.375, sm: 0.75 },
+                        pr: { xs: 3, sm: 4 },
+                      },
+                    }}
                   >
                     {ACTIVE_STATUS_ORDER.map((status) => (
-                      <MenuItem key={status} value={status}>
+                      <MenuItem key={status} value={status} sx={{ fontSize: { xs: '0.72rem', sm: '0.875rem' } }}>
                         {STATUS_META[status].label}
                       </MenuItem>
                     ))}
@@ -204,14 +209,18 @@ export default function InterviewTable({
                     <IconButton
                       size="small"
                       aria-label="Call contact"
-                      onClick={() => (window.location.href = `tel:${interview.contactNumber}`)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.location.href = `tel:${interview.contactNumber}`;
+                      }}
                     >
                       <PhoneIcon sx={{ fontSize: 13 }} />
                     </IconButton>
                     <IconButton
                       size="small"
                       aria-label="Message on WhatsApp"
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         const digits = String(interview.contactNumber || '').replace(/\D/g, '');
                         if (digits) window.open(`https://wa.me/${digits}`, '_blank', 'noopener,noreferrer');
                       }}
@@ -228,7 +237,10 @@ export default function InterviewTable({
                     <IconButton
                       size="small"
                       aria-label="Email contact"
-                      onClick={() => (window.location.href = `mailto:${interview.contactEmail}`)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.location.href = `mailto:${interview.contactEmail}`;
+                      }}
                     >
                       <EmailOutlinedIcon sx={{ fontSize: 13 }} />
                     </IconButton>
@@ -255,7 +267,6 @@ export default function InterviewTable({
                 <RowActions
                   interview={interview}
                   variant={variant}
-                  onView={onView}
                   onEdit={onEdit}
                   onDecline={onDecline}
                   onActivate={onActivate}

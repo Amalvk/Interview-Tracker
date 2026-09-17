@@ -14,7 +14,6 @@ import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import EmojiEventsOutlinedIcon from '@mui/icons-material/EmojiEventsOutlined';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
@@ -67,11 +66,22 @@ export default function InterviewCardItem({
 
   return (
     <Card
+      onClick={() => onView?.(interview)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onView?.(interview);
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-label={`View details for ${interview.companyName}`}
       sx={{
         p: { xs: 2, sm: 2.5 },
         display: 'flex',
         flexDirection: 'column',
         gap: 1.5,
+        cursor: 'pointer',
         transition: 'box-shadow 0.2s ease, transform 0.2s ease',
         '&:hover': { boxShadow: 4 },
       }}
@@ -203,11 +213,7 @@ export default function InterviewCardItem({
           Last updated: {formatRelativeTime(interview)}
         </Typography>
 
-        <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
-          <Button size="small" startIcon={<VisibilityOutlinedIcon fontSize="small" />} onClick={() => onView?.(interview)}>
-            View
-          </Button>
-
+        <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }} onClick={(e) => e.stopPropagation()}>
           {variant === 'active' && (
             <>
               <Button size="small" startIcon={<EditOutlinedIcon fontSize="small" />} onClick={() => onEdit?.(interview)}>
