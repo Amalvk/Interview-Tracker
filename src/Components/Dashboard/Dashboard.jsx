@@ -133,10 +133,10 @@ export default function Dashboard() {
         <Grid size={{ xs: 12, md: 7 }} sx={{ order: { xs: 2, md: 0 } }}>
           <Card sx={{ p: 2.5, height: '100%' }}>
             <Typography variant="h6" color="primary.main" sx={{ mb: 0.5 }}>
-              Pipeline
+              Interview Status
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              HR → Technical → Management → No Response
+              Get a quick overview of your current interview stages.
             </Typography>
             <Stack spacing={1.75}>
               {pipeline.map((stage) => (
@@ -173,10 +173,10 @@ export default function Dashboard() {
         <Grid size={{ xs: 12, md: 5 }} sx={{ order: { xs: 1, md: 0 } }}>
           <Card sx={{ p: 2.5, height: '100%' }}>
             <Typography variant="h6" color="primary.main" sx={{ mb: 0.5 }}>
-              Needs Your Attention
+              Recent Interviews
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Interviews still in HR, Technical, or Management round.
+              Your latest interview opportunities and status updates.
             </Typography>
             {recent.length ? (
               <Stack spacing={1.5} divider={<Box sx={{ borderBottom: (theme) => `1px solid ${theme.palette.divider}` }} />}>
