@@ -7,8 +7,10 @@ export const saveFormToFirestore = createAsyncThunk(
   'form/saveFormToFirestore',
   async (formData, { rejectWithValue }) => {
     try {
-      const docRef = await addDoc(collection(db, 'activeInterviews'), formData);
-      return { id: docRef.id, ...formData };
+      const now = new Date().toISOString();
+      const payload = { ...formData, createdAt: now, updatedAt: now };
+      const docRef = await addDoc(collection(db, 'activeInterviews'), payload);
+      return { id: docRef.id, ...payload };
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -34,11 +36,15 @@ export const fetchInterviewsFromFirestore = createAsyncThunk(
 
 export const updateInterviewStatus = createAsyncThunk(
   'form/updateInterviewStatus',
-  async ({ id, newStatus }, { rejectWithValue }) => {
+  async ({ id, newStatus, previousStatus }, { rejectWithValue }) => {
     try {
       const docRef = doc(db, 'activeInterviews', id);
-      await updateDoc(docRef, { initialStatus: newStatus });
-      return { id, newStatus };
+      const updates = { initialStatus: newStatus, updatedAt: new Date().toISOString() };
+      if (previousStatus !== undefined) {
+        updates.previousStatus = previousStatus;
+      }
+      await updateDoc(docRef, updates);
+      return { id, newStatus, previousStatus };
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -50,8 +56,9 @@ export const updateInterviewForm = createAsyncThunk(
   async ({ id, updatedData }, { rejectWithValue }) => {
     try {
       const docRef = doc(db, 'activeInterviews', id);
-      await updateDoc(docRef, updatedData);
-      return { id, updatedData };
+      const payload = { ...updatedData, updatedAt: new Date().toISOString() };
+      await updateDoc(docRef, payload);
+      return { id, updatedData: payload };
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -121,10 +128,13 @@ const formSlice = createSlice({
 
       // 🔸 Update status
       .addCase(updateInterviewStatus.fulfilled, (state, action) => {
-        const { id, newStatus } = action.payload;
+        const { id, newStatus, previousStatus } = action.payload;
         const existingInterview = state.interviewList.find(item => item.id === id);
         if (existingInterview) {
           existingInterview.initialStatus = newStatus;
+          if (previousStatus !== undefined) {
+            existingInterview.previousStatus = previousStatus;
+          }
         }
       })
 

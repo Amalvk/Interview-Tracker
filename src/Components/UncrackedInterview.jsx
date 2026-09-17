@@ -1,208 +1,184 @@
-import { Box, Typography } from '@mui/material';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { format } from 'date-fns';
-import DeleteIcon from '@mui/icons-material/Delete';
-import { deleteInterviewById, fetchInterviewsFromFirestore, updateInterviewStatus } from '../Redux/formSlice';
-import CommonButton from './CommonButton';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Stack from '@mui/material/Stack';
+import HighlightOffIcon from '@mui/icons-material/HighlightOff';
+import {
+  deleteInterviewById,
+  fetchInterviewsFromFirestore,
+  updateInterviewStatus,
+} from '../Redux/formSlice';
+import InterviewCardItem from './Interviews/InterviewCardItem';
+import InterviewDetailsDrawer from './InterviewDetails/InterviewDetailsDrawer';
+import InterviewFormModal from './InterviewForm/InterviewFormModal';
 import ConfirmWarningModal from './ConfirmWarningModal';
-import { actionsColumnSx } from './cardLayout';
+import SearchBar from './Shared/SearchBar';
+import LabeledSelect from './Shared/LabeledSelect';
+import EmptyState from './Shared/EmptyState';
+import ErrorState from './Shared/ErrorState';
+import CommonSkeleton from './Skelton';
+import { useToast } from '../context/ToastContext';
+import { STATUS } from '../statusConfig';
+import { SORT_OPTIONS, matchesSearch, sortInterviews } from '../utils/interviewUtils';
 
-function getNotesForDisplay({ commentList, comments }) {
-  if (Array.isArray(commentList) && commentList.length) {
-    return [...commentList].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  }
-  if (comments) {
-    return [{ id: 'legacy', text: String(comments), createdAt: null }];
-  }
-  return [];
-}
-
-function formatNoteDate(iso) {
-  if (!iso) return '';
-  const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? '' : format(d, 'MMM d, yyyy');
-}
-
-function UncrackedInterview() {
-
-  const formState = useSelector(state => state.form.interviewList.filter(item => item.initialStatus == 6));
+export default function UncrackedInterview() {
   const dispatch = useDispatch();
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [pendingDeleteId, setPendingDeleteId] = useState(null);
+  const { showToast } = useToast();
 
-  const pendingItem = formState.find((item) => item.id === pendingDeleteId);
+  const { interviewList, fetchStatus } = useSelector((state) => ({
+    interviewList: state.form.interviewList.filter((item) => item.initialStatus === STATUS.UNCRACKED),
+    fetchStatus: state.form.fetchStatus,
+  }));
 
-  const handleDelete = (nodeId) => {
-    dispatch(deleteInterviewById({ nodeId }));
-    dispatch(fetchInterviewsFromFirestore())
+  const [search, setSearch] = useState('');
+  const [companyFilter, setCompanyFilter] = useState('all');
+  const [sortKey, setSortKey] = useState('recentlyUpdated');
+
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [detailsInterview, setDetailsInterview] = useState(null);
+  const [formOpen, setFormOpen] = useState(false);
+  const [selectedInterview, setSelectedInterview] = useState(null);
+
+  const [deleteTarget, setDeleteTarget] = useState(null);
+
+  const companyOptions = useMemo(() => {
+    const unique = Array.from(new Set(interviewList.map((i) => i.companyName).filter(Boolean)));
+    return [{ value: 'all', label: 'All Companies' }, ...unique.map((c) => ({ value: c, label: c }))];
+  }, [interviewList]);
+
+  const filtered = useMemo(() => {
+    let list = interviewList.filter((item) => matchesSearch(item, search));
+    if (companyFilter !== 'all') {
+      list = list.filter((item) => item.companyName === companyFilter);
+    }
+    return sortInterviews(list, sortKey);
+  }, [interviewList, search, companyFilter, sortKey]);
+
+  const openDetails = (interview) => {
+    setDetailsInterview(interview);
+    setDetailsOpen(true);
   };
 
-  const handleDeleteClick = (nodeId) => {
-    setPendingDeleteId(nodeId);
-    setConfirmOpen(true);
+  const openEditModal = (interview) => {
+    setSelectedInterview(interview);
+    setFormOpen(true);
+    setDetailsOpen(false);
   };
 
-  const confirmDelete = () => {
-    if (pendingDeleteId) {
-      handleDelete(pendingDeleteId);
-      setPendingDeleteId(null);
+  const handleActivate = async (interview) => {
+    const restoredStatus = interview.previousStatus ?? STATUS.APPLIED;
+    const result = await dispatch(
+      updateInterviewStatus({ id: interview.id, newStatus: restoredStatus }),
+    );
+    if (updateInterviewStatus.fulfilled.match(result)) {
+      showToast(`Reactivated "${interview.companyName}".`, 'success');
+    } else {
+      showToast('Could not reactivate this interview. Please try again.', 'error');
     }
   };
 
-  const handleStatusChange = (id, newStatus) => {
-    dispatch(updateInterviewStatus({ id, newStatus }));
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    const result = await dispatch(deleteInterviewById({ nodeId: deleteTarget.id }));
+    if (deleteInterviewById.fulfilled.match(result)) {
+      showToast(`Deleted "${deleteTarget.companyName}".`, 'success');
+      dispatch(fetchInterviewsFromFirestore());
+    } else {
+      showToast('Could not delete this interview. Please try again.', 'error');
+    }
+    setDeleteTarget(null);
   };
 
-
+  const hasAnyInterviews = interviewList.length > 0;
 
   return (
-    <>{formState.map((item) => {
-      const notes = getNotesForDisplay(item);
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+      <Box>
+        <Typography variant="h5">Uncracked Interviews</Typography>
+        <Typography variant="body2" color="text.secondary">
+          Review interviews that didn&apos;t move forward and keep track of your application history.
+        </Typography>
+      </Box>
 
-      return (<Box
-        key={item.id}
+      {hasAnyInterviews && (
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ sm: 'center' }}>
+          <SearchBar value={search} onChange={setSearch} placeholder="Search company, position, HR, skill…" />
+          <LabeledSelect label="Company" value={companyFilter} onChange={setCompanyFilter} options={companyOptions} />
+          <LabeledSelect label="Sort" value={sortKey} onChange={setSortKey} options={SORT_OPTIONS} />
+        </Stack>
+      )}
+
+      {hasAnyInterviews && (
+        <Typography variant="body2" color="text.secondary">
+          {filtered.length} of {interviewList.length} interview{interviewList.length === 1 ? '' : 's'}
+        </Typography>
+      )}
+
+      {fetchStatus === 'loading' && interviewList.length === 0 && <CommonSkeleton />}
+
+      {fetchStatus === 'failed' && interviewList.length === 0 && (
+        <ErrorState onRetry={() => dispatch(fetchInterviewsFromFirestore())} />
+      )}
+
+      {fetchStatus !== 'loading' && fetchStatus !== 'failed' && !hasAnyInterviews && (
+        <EmptyState
+          icon={<HighlightOffIcon sx={{ fontSize: 40 }} />}
+          title="No uncracked interviews"
+          description="Great! Your interview pipeline is clear."
+        />
+      )}
+
+      {hasAnyInterviews && filtered.length === 0 && (
+        <EmptyState title="No matching interviews" description="Try adjusting your search or filters." />
+      )}
+
+      <Box
         sx={{
-          width: '100%',
-          maxWidth: '100%',
-          borderRadius: 2,
-          boxShadow: 2,
-          transition: 'box-shadow 0.3s ease',
-          '&:hover': {
-            boxShadow: 6,
-            cursor: 'pointer',
-          },
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)', xl: 'repeat(3, 1fr)' },
+          gap: 2,
         }}
       >
-        <Box
-          sx={{
-            background: '#fff',
-            mt: 3,
-            p: 3,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 1.5,
-            width: '100%',
-            boxSizing: 'border-box',
-            borderRadius: 2,
-            boxShadow: 2,
-            transition: 'box-shadow 0.3s ease',
-            '&:hover': {
-              boxShadow: 8,
-            },
-          }}
-        >
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'flex-start',
-              gap: 2,
-              width: '100%',
-            }}
-          >
-          <Box sx={{ flex: 1, minWidth: 0, fontSize: 13 }}>
-            <Box fontSize={15} fontWeight={600}> {item.companyName}</Box>
-            <Box color={'#ba9e9e'}> {item.position}</Box>
-            <Box pt={.5}>Number : {item.contactNumber}</Box>
-            <Box pt={.5}>Name : {item.contactName}</Box>
-            <Box>Skills : {item.skills}</Box>
-          </Box>
-          <Box sx={actionsColumnSx}>
-            <Box textAlign={'right'} sx={{ width: '100%' }}>
-              <CommonButton
-                label="Activate"
-                variant="contained"
-                color="#fff"
-                bg="#2a8b8c"
-                handleClick={(id) => handleStatusChange(id, 1)}
-                value={item.id}
-                sx={{ width: '100%' }}
-              />
-            </Box>
+        {filtered.map((interview) => (
+          <InterviewCardItem
+            key={interview.id}
+            interview={interview}
+            variant="uncracked"
+            onView={openDetails}
+            onActivate={handleActivate}
+            onDelete={setDeleteTarget}
+          />
+        ))}
+      </Box>
 
-            <Box textAlign={'right'} sx={{ width: '100%' }}>
-              <CommonButton
-                label="Delete"
-                variant="outlined"
-                color="#d87849"
-                borderColor="#e29e55"
-                handleClick={handleDeleteClick}
-                value={item.id}
-                icon={<DeleteIcon sx={{ fontSize: 15 }} />}
-                sx={{ width: '100%', pr: 0 }}
-              />
-            </Box>
-          </Box>
-          </Box>
+      <InterviewDetailsDrawer
+        open={detailsOpen}
+        onClose={() => setDetailsOpen(false)}
+        interview={detailsInterview}
+        onEdit={openEditModal}
+      />
 
-          {notes.length > 0 && (
-            <Box sx={{ width: '100%', alignSelf: 'stretch', boxSizing: 'border-box' }}>
-              <Typography fontWeight={600} fontSize={12} color="text.secondary">Notes</Typography>
-              {notes.map((n) => (
-                <Box
-                  key={n.id}
-                  sx={{
-                    mt: 0.5,
-                    pl: 1,
-                    width: '100%',
-                    maxWidth: '100%',
-                    borderLeft: '2px solid #e0e0e0',
-                    boxSizing: 'border-box',
-                  }}
-                >
-                  {n.createdAt && (
-                    <Typography
-                      component="div"
-                      variant="caption"
-                      color="text.secondary"
-                      sx={{ fontSize: 12, mb: 0.25, display: 'block' }}
-                    >
-                      {formatNoteDate(n.createdAt)}
-                    </Typography>
-                  )}
-                  <Typography
-                    component="div"
-                    sx={{
-                      fontSize: 12,
-                      display: 'block',
-                      width: '100%',
-                      maxWidth: '100%',
-                      whiteSpace: 'pre-wrap',
-                      wordBreak: 'break-word',
-                    }}
-                  >
-                    {n.text}
-                  </Typography>
-                </Box>
-              ))}
-            </Box>
-          )}
-
-          <Box sx={{ fontSize: 10, fontWeight: 600, color: '#a3acad', width: '100%' }}>
-            Date : {item.applicationDate}
-          </Box>
-        </Box>
-      </Box>)
-    })}
+      <InterviewFormModal
+        open={formOpen}
+        mode="edit"
+        interview={selectedInterview}
+        onClose={() => setFormOpen(false)}
+      />
 
       <ConfirmWarningModal
-        open={confirmOpen}
-        onClose={() => {
-          setConfirmOpen(false);
-          setPendingDeleteId(null);
-        }}
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
         onConfirm={confirmDelete}
         title="Delete interview?"
         message={
-          pendingItem
-            ? `Permanently delete "${pendingItem.companyName}"? This cannot be undone.`
-            : 'Permanently delete this interview? This cannot be undone.'
+          deleteTarget
+            ? `Are you sure you want to remove "${deleteTarget.companyName}"? This action cannot be undone.`
+            : ''
         }
         confirmLabel="Delete"
         cancelLabel="Cancel"
       />
-    </>)
+    </Box>
+  );
 }
-
-export default UncrackedInterview

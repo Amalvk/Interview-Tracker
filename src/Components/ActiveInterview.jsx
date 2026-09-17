@@ -1,382 +1,306 @@
-import { Box, Button, Dialog, DialogTitle, IconButton, List, ListItem, MenuItem, Select, TextField, Typography } from '@mui/material';
-import { useEffect, useState } from 'react';
-import { fetchInterviewsFromFirestore, saveFormToFirestore, updateInterviewForm } from '../Redux/formSlice';
+import { useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import CloseIcon from '@mui/icons-material/Close';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-
-import InterviewList from './InterviewList';
-import { format } from 'date-fns';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import Stack from '@mui/material/Stack';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import Tooltip from '@mui/material/Tooltip';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme } from '@mui/material/styles';
+import AddIcon from '@mui/icons-material/Add';
+import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
+import ViewModuleOutlinedIcon from '@mui/icons-material/ViewModuleOutlined';
+import TableRowsOutlinedIcon from '@mui/icons-material/TableRowsOutlined';
+import {
+  deleteInterviewById,
+  fetchInterviewsFromFirestore,
+  updateInterviewStatus,
+} from '../Redux/formSlice';
+import InterviewCardItem from './Interviews/InterviewCardItem';
+import InterviewTable from './Interviews/InterviewTable';
+import InterviewFormModal from './InterviewForm/InterviewFormModal';
+import InterviewDetailsDrawer from './InterviewDetails/InterviewDetailsDrawer';
+import ConfirmWarningModal from './ConfirmWarningModal';
+import SearchBar from './Shared/SearchBar';
+import LabeledSelect from './Shared/LabeledSelect';
+import EmptyState from './Shared/EmptyState';
+import ErrorState from './Shared/ErrorState';
 import CommonSkeleton from './Skelton';
+import { useToast } from '../context/ToastContext';
+import { ACTIVE_STATUS_ORDER, STATUS, STATUS_META } from '../statusConfig';
+import { SORT_OPTIONS, matchesSearch, sortInterviews } from '../utils/interviewUtils';
 
-function formatCommentDate(iso) {
-  if (!iso) return '';
-  const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? '' : format(d, 'MMM d, yyyy · h:mm a');
+const STATUS_FILTER_OPTIONS = [
+  { value: 'all', label: 'All Statuses' },
+  ...ACTIVE_STATUS_ORDER.map((status) => ({ value: status, label: STATUS_META[status].label })),
+];
+
+const VIEW_MODE_KEY = 'interview-tracker-active-view-mode';
+
+function getInitialViewMode() {
+  try {
+    const stored = window.localStorage.getItem(VIEW_MODE_KEY);
+    if (stored === 'card' || stored === 'table') return stored;
+  } catch {
+    // ignore unavailable localStorage
+  }
+  return 'card';
 }
 
-function normalizeCommentList(data) {
-  if (Array.isArray(data.commentList)) {
-    return data.commentList.map((c) => ({
-      id: c.id ?? Date.now() + Math.random(),
-      text: c.text ?? '',
-      createdAt: c.createdAt || new Date().toISOString(),
-    }));
-  }
-  if (data.comments) {
-    return [
-      {
-        id: Date.now(),
-        text: String(data.comments),
-        createdAt: new Date().toISOString(),
-      },
-    ];
-  }
-  return [];
-}
-
-function ActiveInterview() {
-  const [open, setOpen] = useState(false);
-  const [update, setUpdate] = useState(false);
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => {
-    setOpen(false);
-    setDraftComment('');
-    setUpdate(false);
-  };
+export default function ActiveInterview() {
   const dispatch = useDispatch();
-  const [formData, setFormData] = useState({
-    companyName: '',
-    initialStatus: 1,
-    position: '',
-    contactNumber: '',
-    contactName: '',
-    applicationDate: format(new Date(), 'MMMM dd, yyyy'),
-    skills: '',
-    commentList: [],
-  });
-  const [draftComment, setDraftComment] = useState('');
+  const { showToast } = useToast();
+  const theme = useTheme();
+  const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
 
-
-
-
-  const { formState, formStatus } = useSelector(state => ({
-    formState: state.form.interviewList.filter(item => item.initialStatus != 6),
-    formStatus: state.form.fetchStatus
+  const { interviewList, fetchStatus } = useSelector((state) => ({
+    interviewList: state.form.interviewList.filter((item) => item.initialStatus !== STATUS.UNCRACKED),
+    fetchStatus: state.form.fetchStatus,
   }));
 
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [sortKey, setSortKey] = useState('recentlyUpdated');
+  const [viewMode, setViewMode] = useState(getInitialViewMode);
 
-  const handleUpdate = (data) => {
-    setUpdate(true);
-    setDraftComment('');
-    setFormData((prev) => {
-      const updatedForm = {};
-      for (const key in prev) {
-        if (key === 'commentList') {
-          updatedForm.commentList = normalizeCommentList(data);
-          continue;
-        }
-        updatedForm[key] = data[key] !== undefined ? data[key] : prev[key];
-      }
-      if (data.id) {
-        updatedForm.id = data.id;
-      }
-      return updatedForm;
-    });
-    handleOpen();
-  };
-
-  const addCommentEntry = () => {
-    const text = draftComment.trim();
-    if (!text) return;
-    setFormData((prev) => ({
-      ...prev,
-      commentList: [
-        ...(prev.commentList || []),
-        { id: Date.now(), text, createdAt: new Date().toISOString() },
-      ],
-    }));
-    setDraftComment('');
-  };
-
-  const updateCommentText = (commentId, text) => {
-    setFormData((prev) => ({
-      ...prev,
-      commentList: (prev.commentList || []).map((c) =>
-        c.id === commentId ? { ...c, text } : c
-      ),
-    }));
-  };
-
-  const removeComment = (commentId) => {
-    setFormData((prev) => ({
-      ...prev,
-      commentList: (prev.commentList || []).filter((c) => c.id !== commentId),
-    }));
-  };
-
-
-  useEffect(() => {
-    // Fetch all interviews on mount
-    dispatch(fetchInterviewsFromFirestore());
-  }, [dispatch]);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-
-  const clearForm = () => {
-    setUpdate(false);
-    setDraftComment('');
-    setFormData({
-      companyName: '',
-      initialStatus: 1,
-      position: '',
-      applicationDate: format(new Date(), 'MMMM dd, yyyy'),
-      contactNumber: '',
-      contactName: '',
-      skills: '',
-      commentList: [],
-    });
-  }
-
-
-  const handleSubmit = async () => {
+  const handleViewModeChange = (_, next) => {
+    if (!next) return;
+    setViewMode(next);
     try {
-      let resultAction;
-
-      if (update) {
-        const { id, ...updatedData } = formData;
-        resultAction = await dispatch(updateInterviewForm({ id, updatedData }));
-      } else {
-        resultAction = await dispatch(
-          saveFormToFirestore({ ...formData, commentList: formData.commentList || [] })
-        );
-      }
-
-      // Check for success in either case
-      if (
-        saveFormToFirestore.fulfilled.match(resultAction) ||
-        updateInterviewForm.fulfilled.match(resultAction)
-      ) {
-        dispatch(fetchInterviewsFromFirestore());
-        handleClose();
-        clearForm();
-        setUpdate(false)
-      } else {
-        console.error("Save failed", resultAction.payload);
-      }
-    } catch (err) {
-      console.error("Save error", err);
+      window.localStorage.setItem(VIEW_MODE_KEY, next);
+    } catch {
+      // ignore unavailable localStorage
     }
   };
 
+  const [formOpen, setFormOpen] = useState(false);
+  const [formMode, setFormMode] = useState('add');
+  const [selectedInterview, setSelectedInterview] = useState(null);
+
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [detailsInterview, setDetailsInterview] = useState(null);
+
+  const [declineTarget, setDeclineTarget] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+
+  const filtered = useMemo(() => {
+    let list = interviewList.filter((item) => matchesSearch(item, search));
+    if (statusFilter !== 'all') {
+      list = list.filter((item) => item.initialStatus === statusFilter);
+    }
+    return sortInterviews(list, sortKey);
+  }, [interviewList, search, statusFilter, sortKey]);
+
+  const openAddModal = () => {
+    setFormMode('add');
+    setSelectedInterview(null);
+    setFormOpen(true);
+  };
+
+  const openEditModal = (interview) => {
+    setFormMode('edit');
+    setSelectedInterview(interview);
+    setFormOpen(true);
+    setDetailsOpen(false);
+  };
+
+  const openDetails = (interview) => {
+    setDetailsInterview(interview);
+    setDetailsOpen(true);
+  };
+
+  const handleQuickStatusChange = async (id, newStatus) => {
+    const result = await dispatch(updateInterviewStatus({ id, newStatus }));
+    if (updateInterviewStatus.fulfilled.match(result)) {
+      showToast('Interview status updated.', 'success');
+    } else {
+      showToast('Could not update status. Please try again.', 'error');
+    }
+  };
+
+  const confirmDecline = async () => {
+    if (!declineTarget) return;
+    const result = await dispatch(
+      updateInterviewStatus({
+        id: declineTarget.id,
+        newStatus: STATUS.UNCRACKED,
+        previousStatus: declineTarget.initialStatus,
+      }),
+    );
+    if (updateInterviewStatus.fulfilled.match(result)) {
+      showToast(`Moved "${declineTarget.companyName}" to Uncracked.`, 'success');
+    } else {
+      showToast('Could not update this interview. Please try again.', 'error');
+    }
+    setDeclineTarget(null);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    const result = await dispatch(deleteInterviewById({ nodeId: deleteTarget.id }));
+    if (deleteInterviewById.fulfilled.match(result)) {
+      showToast(`Deleted "${deleteTarget.companyName}".`, 'success');
+      dispatch(fetchInterviewsFromFirestore());
+    } else {
+      showToast('Could not delete this interview. Please try again.', 'error');
+    }
+    setDeleteTarget(null);
+  };
+
+  const hasAnyInterviews = interviewList.length > 0;
 
   return (
-    <>
-      <Box onClick={() => { handleOpen(); clearForm() }} sx={{ textAlign: 'center', background: '#fff', p: 3, borderRadius: 2, boxShadow: 2 }}>
-        <AddCircleOutlineIcon fontSize='large' color='#866e6e' />
-        <Typography>Start by adding your interview to track.</Typography>
-        <Button sx={{ textTransform: 'capitalize', background: 'gray' }} variant="contained">Add Interview</Button>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
+        <Box>
+          <Typography variant="h5">Active Interviews</Typography>
+          <Typography variant="body2" color="text.secondary">
+            Track and manage your ongoing interview opportunities.
+          </Typography>
+        </Box>
+        <Button variant="contained" startIcon={<AddIcon />} onClick={openAddModal} sx={{ height: 'fit-content' }}>
+          Add Interview
+        </Button>
       </Box>
-      {formState.sort((a, b) => new Date(b.applicationDate) - new Date(a.applicationDate)).map((interview) => {
-        return <InterviewList key={interview.id} {...interview} handleUpdate={handleUpdate} />;
-      })}
-      <Box>{formStatus === 'loading' && <CommonSkeleton />}</Box>
-      <Box>
-        <Dialog
-          open={open}
-          onClose={handleClose}
-          PaperProps={{
-            sx: {
-              minWidth: { xs: '90%', sm: '70%', md: '40%' },
-              py: 2,
-            }
+
+      {hasAnyInterviews && (
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={1.5}
+          alignItems={{ sm: 'center' }}
+          justifyContent="space-between"
+        >
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ sm: 'center' }} sx={{ flexGrow: 1 }}>
+            <SearchBar value={search} onChange={setSearch} placeholder="Search company, position, HR, skill…" />
+            <LabeledSelect label="Status" value={statusFilter} onChange={setStatusFilter} options={STATUS_FILTER_OPTIONS} />
+            <LabeledSelect label="Sort" value={sortKey} onChange={setSortKey} options={SORT_OPTIONS} />
+          </Stack>
+
+          {isDesktop && (
+            <ToggleButtonGroup
+              value={viewMode}
+              exclusive
+              onChange={handleViewModeChange}
+              size="small"
+              aria-label="Choose list layout"
+            >
+              <ToggleButton value="card" aria-label="Card view">
+                <Tooltip title="Card view">
+                  <ViewModuleOutlinedIcon fontSize="small" />
+                </Tooltip>
+              </ToggleButton>
+              <ToggleButton value="table" aria-label="Table view">
+                <Tooltip title="Table view">
+                  <TableRowsOutlinedIcon fontSize="small" />
+                </Tooltip>
+              </ToggleButton>
+            </ToggleButtonGroup>
+          )}
+        </Stack>
+      )}
+
+      {hasAnyInterviews && (
+        <Typography variant="body2" color="text.secondary">
+          {filtered.length} of {interviewList.length} interview{interviewList.length === 1 ? '' : 's'}
+        </Typography>
+      )}
+
+      {fetchStatus === 'loading' && interviewList.length === 0 && <CommonSkeleton />}
+
+      {fetchStatus === 'failed' && interviewList.length === 0 && (
+        <ErrorState onRetry={() => dispatch(fetchInterviewsFromFirestore())} />
+      )}
+
+      {fetchStatus !== 'loading' && fetchStatus !== 'failed' && !hasAnyInterviews && (
+        <EmptyState
+          icon={<WorkOutlineIcon sx={{ fontSize: 40 }} />}
+          title="No Active Interviews"
+          description="Start tracking your next opportunity by adding your first interview."
+          actionLabel="+ Add Interview"
+          onAction={openAddModal}
+        />
+      )}
+
+      {hasAnyInterviews && filtered.length === 0 && (
+        <EmptyState title="No matching interviews" description="Try adjusting your search or filters." />
+      )}
+
+      {filtered.length > 0 && isDesktop && viewMode === 'table' ? (
+        <InterviewTable
+          interviews={filtered}
+          variant="active"
+          onView={openDetails}
+          onEdit={openEditModal}
+          onDecline={setDeclineTarget}
+          onDelete={setDeleteTarget}
+          onQuickStatusChange={handleQuickStatusChange}
+        />
+      ) : (
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)', xl: 'repeat(3, 1fr)' },
+            gap: 2,
           }}
         >
-          <DialogTitle id="alert-dialog-title" display={'flex'} alignItems={'center'} justifyContent={'space-between'}>
-            {"Add New Interview"}
-            <CloseIcon onClick={handleClose} />
-          </DialogTitle>
-          <Box sx={{ display: 'flex', flexDirection: 'column', m: 2, gap: 2 }}>
-            <Box>
-              <Typography fontWeight={600} fontSize={15}>Company Name</Typography>
-              <TextField
-                name="companyName"
-                value={formData.companyName}
-                onChange={handleChange}
-                size='small'
-                variant="outlined"
-                placeholder="eg: Google"
-                autoFocus
-                fullWidth
-              />
-            </Box>
-            <Box>
-              <Typography fontWeight={600} fontSize={15}>Initial Status</Typography>
-              { /* <TextField
-                  name="initialStatus"
-                  value={formData.initialStatus}
-                  onChange={handleChange}
-                  size='small'
-                  variant="outlined"
-                /> */}
+          {filtered.map((interview) => (
+            <InterviewCardItem
+              key={interview.id}
+              interview={interview}
+              variant="active"
+              onView={openDetails}
+              onEdit={openEditModal}
+              onDecline={setDeclineTarget}
+              onDelete={setDeleteTarget}
+              onQuickStatusChange={handleQuickStatusChange}
+            />
+          ))}
+        </Box>
+      )}
 
-              <Select
-                width='100%'
-                value={formData.initialStatus}
-                name="initialStatus"
-                onChange={handleChange}
-                size='small'
-                fullWidth
-              >
-                <MenuItem value={1}>Applied</MenuItem>
-                <MenuItem value={2}>HR round</MenuItem>
-                <MenuItem value={3}>Technical round</MenuItem>
-                <MenuItem value={4}>management round</MenuItem>
-                <MenuItem value={5}>Offer Received</MenuItem>
-              </Select>
+      <InterviewFormModal
+        open={formOpen}
+        mode={formMode}
+        interview={selectedInterview}
+        onClose={() => setFormOpen(false)}
+      />
 
+      <InterviewDetailsDrawer
+        open={detailsOpen}
+        onClose={() => setDetailsOpen(false)}
+        interview={detailsInterview}
+        onEdit={openEditModal}
+      />
 
-            </Box>
+      <ConfirmWarningModal
+        open={!!declineTarget}
+        onClose={() => setDeclineTarget(null)}
+        onConfirm={confirmDecline}
+        title="Decline interview?"
+        message={
+          declineTarget
+            ? `Move "${declineTarget.companyName}" to the Uncracked list? You can reactivate it later.`
+            : ''
+        }
+        confirmLabel="Decline"
+        cancelLabel="Cancel"
+      />
 
-            <Box>
-              <Typography fontWeight={600} fontSize={15}>Position</Typography>
-              <TextField
-                name="position"
-                value={formData.position}
-                onChange={handleChange}
-                size="small"
-                variant="outlined"
-                placeholder="eg: Frontend Engineer"
-                fullWidth
-              />
-
-
-            </Box>
-            <Box>
-              <Typography fontWeight={600} fontSize={15}>Contact number</Typography>
-
-              <TextField
-                name="contactNumber"
-                value={formData.contactNumber}
-                onChange={handleChange}
-                size="small"
-                variant="outlined"
-                placeholder="Contact number"
-                fullWidth
-              />
-            </Box>
-
-            <Box>
-              <Typography fontWeight={600} fontSize={15}>HR Name</Typography>
-
-              <TextField
-                name="contactName"
-                value={formData.contactName}
-                onChange={handleChange}
-                size="small"
-                variant="outlined"
-                placeholder="Contact name"
-                fullWidth
-              />
-            </Box>
-
-            <Box>
-              <Typography fontWeight={600} fontSize={15}>Skill set</Typography>
-              <TextField
-                name="skills"
-                value={formData.skills}
-                onChange={handleChange}
-                size='small'
-                variant="outlined"
-                placeholder="eg: React, Nodejs, Express"
-                fullWidth
-              />
-            </Box>
-
-            <Box>
-              <Typography fontWeight={600} fontSize={15}>Comments</Typography>
-              <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
-                <TextField
-                  size="small"
-                  variant="outlined"
-                  placeholder="Add a note…"
-                  fullWidth
-                  multiline
-                  minRows={1}
-                  value={draftComment}
-                  onChange={(e) => setDraftComment(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      addCommentEntry();
-                    }
-                  }}
-                />
-                <Button
-                  size="small"
-                  variant="outlined"
-                  sx={{ textTransform: 'none', flexShrink: 0, alignSelf: 'flex-start' }}
-                  onClick={addCommentEntry}
-                >
-                  Add
-                </Button>
-              </Box>
-              <List dense disablePadding sx={{ maxHeight: 220, overflow: 'auto', border: '1px solid #eee', borderRadius: 1, p: 0.5 }}>
-                {[...(formData.commentList || [])]
-                  .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-                  .map((c) => (
-                    <ListItem key={c.id} disableGutters sx={{ display: 'block', py: 1, px: 1 }}>
-                      <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
-                        <Box sx={{ flex: 1, minWidth: 0 }}>
-                          <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 0.5 }}>
-                            {formatCommentDate(c.createdAt)}
-                          </Typography>
-                          <TextField
-                            size="small"
-                            fullWidth
-                            multiline
-                            minRows={1}
-                            value={c.text}
-                            onChange={(e) => updateCommentText(c.id, e.target.value)}
-                            variant="outlined"
-                          />
-                        </Box>
-                        <IconButton size="small" aria-label="delete comment" onClick={() => removeComment(c.id)} sx={{ mt: 2 }}>
-                          <DeleteOutlineIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    </ListItem>
-                  ))}
-                {!(formData.commentList || []).length && (
-                  <ListItem>
-                    <Typography variant="body2" color="text.secondary">
-                      No notes yet. Add one above.
-                    </Typography>
-                  </ListItem>
-                )}
-              </List>
-            </Box>
-          </Box>
-
-          <Box textAlign={'center'}>
-            <Button size='small'
-              sx={{
-                color: '#fff',
-                background: '#2a8b8c',
-                fontSize: '0.7rem',
-                textTransform: 'capitalize'
-              }}
-              onClick={handleSubmit} variant="contained">{update ? "Update" : "Submit"} form</Button>
-          </Box>
-        </Dialog>
-      </Box>
-    </>
-  )
+      <ConfirmWarningModal
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        title="Delete interview?"
+        message={
+          deleteTarget
+            ? `Are you sure you want to remove "${deleteTarget.companyName}"? This action cannot be undone.`
+            : ''
+        }
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+      />
+    </Box>
+  );
 }
-
-export default ActiveInterview
