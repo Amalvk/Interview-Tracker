@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
@@ -12,7 +12,6 @@ import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import EmojiEventsOutlinedIcon from '@mui/icons-material/EmojiEventsOutlined';
-import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined';
 import StatCard from './StatCard';
 import PipelineChart from './PipelineChart';
@@ -20,6 +19,8 @@ import StatusBadge from '../Shared/StatusBadge';
 import CommonSkeleton from '../Skelton';
 import ErrorState from '../Shared/ErrorState';
 import EmptyState from '../Shared/EmptyState';
+import InterviewDetailsDrawer from '../InterviewDetails/InterviewDetailsDrawer';
+import InterviewFormModal from '../InterviewForm/InterviewFormModal';
 import { fetchInterviewsFromFirestore } from '../../Redux/formSlice';
 import {
   PIPELINE_STATUS_ORDER,
@@ -28,7 +29,6 @@ import {
   getStatusLabel,
   isActiveStage,
   isCrackedStatus,
-  isUncrackedStatus,
 } from '../../statusConfig';
 import { formatRelativeTime } from '../../utils/interviewUtils';
 
@@ -40,16 +40,31 @@ export default function Dashboard() {
     fetchStatus: state.form.fetchStatus,
   }));
 
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [detailsInterview, setDetailsInterview] = useState(null);
+  const [formOpen, setFormOpen] = useState(false);
+  const [selectedInterview, setSelectedInterview] = useState(null);
+
+  const openDetails = (interview) => {
+    setDetailsInterview(interview);
+    setDetailsOpen(true);
+  };
+
+  const openEditModal = (interview) => {
+    setSelectedInterview(interview);
+    setFormOpen(true);
+    setDetailsOpen(false);
+  };
+
   const stats = useMemo(() => {
     const total = interviewList.length;
     const active = interviewList.filter((i) => isActiveStage(i.initialStatus)).length;
     const cracked = interviewList.filter((i) => isCrackedStatus(i.initialStatus)).length;
-    const uncracked = interviewList.filter((i) => isUncrackedStatus(i.initialStatus)).length;
     const noResponse = interviewList.filter((i) => i.initialStatus === STATUS.NO_RESPONSE).length;
     const inProgress = interviewList.filter((i) =>
       [STATUS.HR_ROUND, STATUS.TECHNICAL_ROUND, STATUS.MANAGEMENT_ROUND].includes(i.initialStatus),
     ).length;
-    return { total, active, uncracked, cracked, noResponse, inProgress };
+    return { total, active, cracked, noResponse, inProgress };
   }, [interviewList]);
 
   const pipeline = useMemo(
@@ -64,7 +79,8 @@ export default function Dashboard() {
   );
 
   const recent = useMemo(() => {
-    return [...interviewList]
+    return interviewList
+      .filter((i) => isActiveStage(i.initialStatus))
       .sort((a, b) => new Date(b.updatedAt || b.applicationDate || 0) - new Date(a.updatedAt || a.applicationDate || 0))
       .slice(0, 5);
   }, [interviewList]);
@@ -98,23 +114,20 @@ export default function Dashboard() {
       </Box>
 
       <Grid container spacing={2}>
-        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
           <StatCard label="Total Interviews" value={stats.total} icon={<Inventory2OutlinedIcon />} accentColor="#16A34A" />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
           <StatCard label="Active" value={stats.active} icon={<WorkOutlineIcon />} accentColor="#059669" />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
           <StatCard label="In Progress" value={stats.inProgress} icon={<TrendingUpIcon />} accentColor="#0F766E" />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
           <StatCard label="Cracked" value={stats.cracked} icon={<EmojiEventsOutlinedIcon />} accentColor="#15803D" />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
           <StatCard label="No Response" value={stats.noResponse} icon={<ScheduleOutlinedIcon />} accentColor="#CA8A04" />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
-          <StatCard label="Uncracked" value={stats.uncracked} icon={<HighlightOffIcon />} accentColor="#B91C1C" />
         </Grid>
       </Grid>
 
@@ -125,7 +138,7 @@ export default function Dashboard() {
               Pipeline
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              HR → Technical → Management → No Response / Uncracked
+              HR → Technical → Management → No Response
             </Typography>
             <Stack spacing={1.75}>
               {pipeline.map((stage) => (
@@ -161,27 +174,74 @@ export default function Dashboard() {
 
         <Grid size={{ xs: 12, md: 5 }}>
           <Card sx={{ p: 2.5, height: '100%' }}>
-            <Typography variant="h6" sx={{ mb: 2 }}>
+            <Typography variant="h6" sx={{ mb: 0.5 }}>
               Needs Your Attention
             </Typography>
-            <Stack spacing={1.5} divider={<Box sx={{ borderBottom: (theme) => `1px solid ${theme.palette.divider}` }} />}>
-              {recent.map((item) => (
-                <Box key={item.id} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
-                  <Box sx={{ minWidth: 0 }}>
-                    <Typography variant="body2" fontWeight={600} noWrap>
-                      {item.companyName}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary" noWrap display="block">
-                      {item.position} · {formatRelativeTime(item)}
-                    </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Interviews still in HR, Technical, or Management round.
+            </Typography>
+            {recent.length ? (
+              <Stack spacing={1.5} divider={<Box sx={{ borderBottom: (theme) => `1px solid ${theme.palette.divider}` }} />}>
+                {recent.map((item) => (
+                  <Box
+                    key={item.id}
+                    onClick={() => openDetails(item)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        openDetails(item);
+                      }
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`View details for ${item.companyName}`}
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: 1,
+                      cursor: 'pointer',
+                      borderRadius: 1,
+                      mx: -1,
+                      px: 1,
+                      py: 0.5,
+                      '&:hover': { bgcolor: 'action.hover' },
+                    }}
+                  >
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography variant="body2" fontWeight={600} noWrap>
+                        {item.companyName}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" noWrap display="block">
+                        {item.position} · {formatRelativeTime(item)}
+                      </Typography>
+                    </Box>
+                    <StatusBadge status={item.initialStatus} />
                   </Box>
-                  <StatusBadge status={item.initialStatus} />
-                </Box>
-              ))}
-            </Stack>
+                ))}
+              </Stack>
+            ) : (
+              <Typography variant="body2" color="text.secondary">
+                Nothing needs attention right now.
+              </Typography>
+            )}
           </Card>
         </Grid>
       </Grid>
+
+      <InterviewDetailsDrawer
+        open={detailsOpen}
+        onClose={() => setDetailsOpen(false)}
+        interview={detailsInterview}
+        onEdit={openEditModal}
+      />
+
+      <InterviewFormModal
+        open={formOpen}
+        mode="edit"
+        interview={selectedInterview}
+        onClose={() => setFormOpen(false)}
+      />
     </Box>
   );
 }

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useDispatch } from 'react-redux';
+import { useTheme } from '@mui/material/styles';
 import { format } from 'date-fns';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -26,13 +27,6 @@ const STATUS_OPTIONS = ALL_STATUS_ORDER.map((value) => ({
   value,
   label: STATUS_META[value].label,
 }));
-
-// Solid, mode-invariant status color + white text — reads as a filled pill
-// regardless of the app's light/dark theme.
-function getStatusOptionColor(value) {
-  const solid = STATUS_META[value]?.solid;
-  return solid ? { bg: solid, color: '#ffffff' } : null;
-}
 
 function emptyForm() {
   return {
@@ -83,7 +77,19 @@ function formatCommentDate(iso) {
 export default function InterviewFormModal({ open, mode, interview, onClose }) {
   const dispatch = useDispatch();
   const { showToast } = useToast();
+  const theme = useTheme();
   const isEdit = mode === 'edit';
+
+  // Same per-status tinted background as StatusBadge. In dark mode the tint
+  // sits on a near-black surface, so near-white text (60% opacity) reads
+  // better there than colored text; light mode's pastel tint is too pale
+  // for white text, so it keeps the status color instead.
+  const getStatusOptionColor = (value) => {
+    const meta = STATUS_META[value];
+    if (!meta) return null;
+    const isDark = theme.palette.mode === 'dark';
+    return { bg: meta[isDark ? 'dark' : 'light'].bg, color: isDark ? 'rgba(255,255,255,0.7)' : meta.light.color };
+  };
 
   const [formData, setFormData] = useState(emptyForm);
   const [initialSnapshot, setInitialSnapshot] = useState(emptyForm);

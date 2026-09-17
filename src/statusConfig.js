@@ -39,10 +39,10 @@ export const ALL_STATUS_ORDER = [
   STATUS.UNCRACKED,
 ];
 
-// The full pipeline breakdown shown on the Dashboard: in-progress stages
-// plus both terminal outcomes (Cracked has its own headline stat card, so
-// it isn't repeated here).
-export const PIPELINE_STATUS_ORDER = [...ACTIVE_STATUS_ORDER, STATUS.NO_RESPONSE, STATUS.UNCRACKED];
+// The pipeline breakdown shown on the Dashboard: in-progress stages plus
+// No Response. Cracked and Uncracked each have their own headline stat card
+// / dedicated section, so they aren't repeated here.
+export const PIPELINE_STATUS_ORDER = [...ACTIVE_STATUS_ORDER, STATUS.NO_RESPONSE];
 
 export function isActiveStage(status) {
   return ACTIVE_STATUS_ORDER.includes(status);

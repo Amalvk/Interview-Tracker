@@ -9,7 +9,7 @@ import Tooltip from '@mui/material/Tooltip';
 export default function PipelineChart({ stages, total }) {
   const nonZero = stages.filter((s) => s.count > 0);
 
-  if (!total || nonZero.length === 0) {
+  if (!total) {
     return (
       <Typography variant="body2" color="text.secondary">
         No data yet.
@@ -21,7 +21,7 @@ export default function PipelineChart({ stages, total }) {
     <Box>
       <Box
         role="img"
-        aria-label={`Status breakdown out of ${total}: ${nonZero.map((s) => `${s.label} ${s.count}`).join(', ')}`}
+        aria-label={`Status breakdown out of ${total}: ${stages.map((s) => `${s.label} ${s.count}`).join(', ')}`}
         sx={{
           display: 'flex',
           width: '100%',
@@ -52,8 +52,11 @@ export default function PipelineChart({ stages, total }) {
       </Box>
 
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mt: 1.5 }}>
-        {nonZero.map((stage) => (
-          <Box key={stage.status} sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+        {stages.map((stage) => (
+          <Box
+            key={stage.status}
+            sx={{ display: 'flex', alignItems: 'center', gap: 0.75, opacity: stage.count > 0 ? 1 : 0.5 }}
+          >
             <Box sx={{ width: 10, height: 10, borderRadius: '2px', bgcolor: stage.color, flexShrink: 0 }} />
             <Typography variant="caption" color="text.secondary">
               {stage.label} ({stage.count})
