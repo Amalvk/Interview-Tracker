@@ -6,6 +6,8 @@ import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import Button from '@mui/material/Button';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
+import PhoneIcon from '@mui/icons-material/Phone';
+import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import StatusBadge from '../Shared/StatusBadge';
@@ -68,25 +70,33 @@ export default function InterviewCardItem({ interview, onView, onEdit, onDelete 
       </Box>
 
       {(interview.contactName || interview.contactNumber || interview.contactEmail) && (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
           {interview.contactName && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
               <PersonOutlineIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
               <Typography variant="body2">{interview.contactName}</Typography>
             </Box>
           )}
-          {interview.contactNumber && <PhoneAction phone={interview.contactNumber} />}
+          {interview.contactNumber && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+              <PhoneIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+              <PhoneAction phone={interview.contactNumber} />
+            </Box>
+          )}
           {interview.contactEmail && (
-            <Typography
-              component="a"
-              href={`mailto:${interview.contactEmail}`}
-              onClick={(e) => e.stopPropagation()}
-              variant="body2"
-              noWrap
-              sx={{ color: 'primary.main', textDecoration: 'none', maxWidth: 200 }}
-            >
-              {interview.contactEmail}
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, minWidth: 0 }}>
+              <EmailOutlinedIcon sx={{ fontSize: 16, color: 'text.secondary', flexShrink: 0 }} />
+              <Typography
+                component="a"
+                href={`mailto:${interview.contactEmail}`}
+                onClick={(e) => e.stopPropagation()}
+                variant="body2"
+                noWrap
+                sx={{ color: 'primary.main', textDecoration: 'none', minWidth: 0 }}
+              >
+                {interview.contactEmail}
+              </Typography>
+            </Box>
           )}
         </Box>
       )}

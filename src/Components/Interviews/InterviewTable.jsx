@@ -80,20 +80,7 @@ export default function InterviewTable({ interviews, onView, onEdit, onDelete })
                 {interview.contactNumber && (
                   <PhoneAction phone={interview.contactNumber} variant="caption" sx={{ display: 'block' }} />
                 )}
-                {interview.contactEmail && (
-                  <Typography
-                    component="a"
-                    href={`mailto:${interview.contactEmail}`}
-                    onClick={(e) => e.stopPropagation()}
-                    variant="caption"
-                    display="block"
-                    noWrap
-                    sx={{ color: 'primary.main', textDecoration: 'none', maxWidth: 160 }}
-                  >
-                    {interview.contactEmail}
-                  </Typography>
-                )}
-                {!interview.contactName && !interview.contactNumber && !interview.contactEmail && (
+                {!interview.contactName && !interview.contactNumber && (
                   <Typography variant="caption" color="text.secondary">
                     —
                   </Typography>
