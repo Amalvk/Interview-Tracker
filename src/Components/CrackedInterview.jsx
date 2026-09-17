@@ -4,23 +4,20 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import EmojiEventsOutlinedIcon from '@mui/icons-material/EmojiEventsOutlined';
-import {
-  deleteInterviewById,
-  fetchInterviewsFromFirestore,
-  updateInterviewStatus,
-} from '../Redux/formSlice';
+import { deleteInterviewById, fetchInterviewsFromFirestore } from '../Redux/formSlice';
 import InterviewCardItem from './Interviews/InterviewCardItem';
 import InterviewDetailsDrawer from './InterviewDetails/InterviewDetailsDrawer';
 import InterviewFormModal from './InterviewForm/InterviewFormModal';
 import ConfirmWarningModal from './ConfirmWarningModal';
 import SearchBar from './Shared/SearchBar';
 import LabeledSelect from './Shared/LabeledSelect';
+import DateSortToggle from './Shared/DateSortToggle';
 import EmptyState from './Shared/EmptyState';
 import ErrorState from './Shared/ErrorState';
 import CommonSkeleton from './Skelton';
 import { useToast } from '../context/ToastContext';
-import { STATUS, isCrackedStatus } from '../statusConfig';
-import { SORT_OPTIONS, matchesSearch, sortInterviews } from '../utils/interviewUtils';
+import { isCrackedStatus } from '../statusConfig';
+import { matchesSearch, sortInterviews } from '../utils/interviewUtils';
 
 export default function CrackedInterview() {
   const dispatch = useDispatch();
@@ -33,7 +30,7 @@ export default function CrackedInterview() {
 
   const [search, setSearch] = useState('');
   const [companyFilter, setCompanyFilter] = useState('all');
-  const [sortKey, setSortKey] = useState('recentlyUpdated');
+  const [sortDir, setSortDir] = useState('desc');
 
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [detailsInterview, setDetailsInterview] = useState(null);
@@ -52,8 +49,8 @@ export default function CrackedInterview() {
     if (companyFilter !== 'all') {
       list = list.filter((item) => item.companyName === companyFilter);
     }
-    return sortInterviews(list, sortKey);
-  }, [interviewList, search, companyFilter, sortKey]);
+    return sortInterviews(list, sortDir);
+  }, [interviewList, search, companyFilter, sortDir]);
 
   const openDetails = (interview) => {
     setDetailsInterview(interview);
@@ -64,18 +61,6 @@ export default function CrackedInterview() {
     setSelectedInterview(interview);
     setFormOpen(true);
     setDetailsOpen(false);
-  };
-
-  const handleReopen = async (interview) => {
-    const restoredStatus = interview.previousStatus ?? STATUS.APPLIED;
-    const result = await dispatch(
-      updateInterviewStatus({ id: interview.id, newStatus: restoredStatus }),
-    );
-    if (updateInterviewStatus.fulfilled.match(result)) {
-      showToast(`Reopened "${interview.companyName}".`, 'success');
-    } else {
-      showToast('Could not reopen this interview. Please try again.', 'error');
-    }
   };
 
   const confirmDelete = async () => {
@@ -105,7 +90,7 @@ export default function CrackedInterview() {
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ sm: 'center' }}>
           <SearchBar value={search} onChange={setSearch} placeholder="Search company, position, HR, skill…" />
           <LabeledSelect label="Company" value={companyFilter} onChange={setCompanyFilter} options={companyOptions} />
-          <LabeledSelect label="Sort" value={sortKey} onChange={setSortKey} options={SORT_OPTIONS} />
+          <DateSortToggle direction={sortDir} onToggle={() => setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))} />
         </Stack>
       )}
 
@@ -125,7 +110,7 @@ export default function CrackedInterview() {
         <EmptyState
           icon={<EmojiEventsOutlinedIcon sx={{ fontSize: 40 }} />}
           title="No cracked interviews yet"
-          description="Once you receive an offer, mark it as Cracked from Active Interviews and it'll show up here."
+          description="Once you receive an offer, edit the interview and set its status to Offer Received — it'll show up here."
         />
       )}
 
@@ -144,9 +129,8 @@ export default function CrackedInterview() {
           <InterviewCardItem
             key={interview.id}
             interview={interview}
-            variant="cracked"
             onView={openDetails}
-            onActivate={handleReopen}
+            onEdit={openEditModal}
             onDelete={setDeleteTarget}
           />
         ))}

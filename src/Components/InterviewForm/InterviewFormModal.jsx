@@ -16,28 +16,33 @@ import CircularProgress from '@mui/material/CircularProgress';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import LabeledSelect from '../Shared/LabeledSelect';
-import SkillChipsInput from '../Shared/SkillChipsInput';
 import ConfirmWarningModal from '../ConfirmWarningModal';
 import { saveFormToFirestore, updateInterviewForm } from '../../Redux/formSlice';
-import { ACTIVE_STATUS_ORDER, STATUS_META } from '../../statusConfig';
+import { ALL_STATUS_ORDER, STATUS, STATUS_META } from '../../statusConfig';
 import { validateInterviewForm, FIELD_LIMITS } from './validation';
 import { useToast } from '../../context/ToastContext';
 
-const STATUS_OPTIONS = ACTIVE_STATUS_ORDER.map((value) => ({
+const STATUS_OPTIONS = ALL_STATUS_ORDER.map((value) => ({
   value,
   label: STATUS_META[value].label,
 }));
 
+// Solid, mode-invariant status color + white text — reads as a filled pill
+// regardless of the app's light/dark theme.
+function getStatusOptionColor(value) {
+  const solid = STATUS_META[value]?.solid;
+  return solid ? { bg: solid, color: '#ffffff' } : null;
+}
+
 function emptyForm() {
   return {
     companyName: '',
-    initialStatus: 1,
+    initialStatus: STATUS.HR_ROUND,
     position: '',
     contactNumber: '',
     contactName: '',
     contactEmail: '',
     applicationDate: format(new Date(), 'MMMM dd, yyyy'),
-    skills: '',
     commentList: [],
   };
 }
@@ -108,10 +113,6 @@ export default function InterviewFormModal({ open, mode, interview, onClose }) {
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: undefined }));
   };
 
-  const handleSkillsChange = (value) => {
-    setFormData((prev) => ({ ...prev, skills: value }));
-  };
-
   const addCommentEntry = () => {
     const text = draftComment.trim();
     if (!text) return;
@@ -156,6 +157,9 @@ export default function InterviewFormModal({ open, mode, interview, onClose }) {
       let resultAction;
       if (isEdit) {
         const { id, ...updatedData } = formData;
+        if (interview && formData.initialStatus !== interview.initialStatus) {
+          updatedData.previousStatus = interview.initialStatus;
+        }
         resultAction = await dispatch(updateInterviewForm({ id, updatedData }));
       } else {
         resultAction = await dispatch(
@@ -214,10 +218,11 @@ export default function InterviewFormModal({ open, mode, interview, onClose }) {
             />
 
             <LabeledSelect
-              label="Initial Status"
+              label="Status"
               value={formData.initialStatus}
               onChange={(value) => handleChange({ target: { name: 'initialStatus', value } })}
               options={STATUS_OPTIONS}
+              getOptionColor={getStatusOptionColor}
               sx={{ width: '100%' }}
             />
 
@@ -270,13 +275,6 @@ export default function InterviewFormModal({ open, mode, interview, onClose }) {
               helperText={errors.contactEmail}
               inputProps={{ maxLength: FIELD_LIMITS.contactEmail }}
             />
-
-            <Box>
-              <Typography variant="body2" fontWeight={600} sx={{ mb: 0.75 }}>
-                Skill Set
-              </Typography>
-              <SkillChipsInput value={formData.skills} onChange={handleSkillsChange} />
-            </Box>
 
             <Box>
               <Typography variant="body2" fontWeight={600} sx={{ mb: 0.75 }}>

@@ -1,14 +1,17 @@
+import { BrowserRouter } from 'react-router-dom';
 import { ThemeModeProvider } from './context/ThemeModeContext';
 import { ToastProvider } from './context/ToastContext';
 import AppShell from './Components/Layout/AppShell';
 
 function App() {
   return (
-    <ThemeModeProvider>
-      <ToastProvider>
-        <AppShell />
-      </ToastProvider>
-    </ThemeModeProvider>
+    <BrowserRouter>
+      <ThemeModeProvider>
+        <ToastProvider>
+          <AppShell />
+        </ToastProvider>
+      </ThemeModeProvider>
+    </BrowserRouter>
   );
 }
 

@@ -1,3 +1,4 @@
+import { useLocation } from 'react-router-dom';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
@@ -9,9 +10,10 @@ import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
 import { useThemeMode } from '../context/ThemeModeContext';
 import { NAV_ITEMS } from './Layout/navItems';
 
-export default function Header({ activePage, onMenuClick }) {
+export default function Header({ onMenuClick }) {
   const { mode, toggleMode } = useThemeMode();
-  const pageLabel = NAV_ITEMS.find((item) => item.key === activePage)?.label || 'Interview Tracker';
+  const { pathname } = useLocation();
+  const pageLabel = NAV_ITEMS.find((item) => item.path === pathname)?.label || 'Interview Tracker';
 
   return (
     <AppBar

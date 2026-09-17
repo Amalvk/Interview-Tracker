@@ -9,14 +9,14 @@ export function getTheme(mode) {
     palette: {
       mode,
       primary: {
-        main: isDark ? '#818cf8' : '#4f46e5',
+        main: isDark ? '#4ade80' : '#16a34a',
         contrastText: '#ffffff',
       },
       success: { main: isDark ? '#4ade80' : '#16a34a' },
       warning: { main: isDark ? '#fbbf24' : '#d97706' },
       error: { main: isDark ? '#f87171' : '#dc2626' },
       background: {
-        default: isDark ? '#0f1115' : '#f6f7fb',
+        default: isDark ? '#0f1115' : '#f4faf6',
         paper: isDark ? '#161a20' : '#ffffff',
       },
       divider: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.08)',
@@ -52,10 +52,10 @@ export function getTheme(mode) {
       MuiCssBaseline: {
         styleOverrides: {
           body: {
-            backgroundColor: isDark ? '#0f1115' : '#f6f7fb',
+            backgroundColor: isDark ? '#0f1115' : '#f4faf6',
           },
           '*:focus-visible': {
-            outline: `2px solid ${isDark ? '#818cf8' : '#4f46e5'}`,
+            outline: `2px solid ${isDark ? '#4ade80' : '#16a34a'}`,
             outlineOffset: 2,
           },
         },
@@ -100,6 +100,13 @@ export function getTheme(mode) {
       MuiOutlinedInput: {
         styleOverrides: {
           root: { borderRadius: RADIUS },
+        },
+      },
+      MuiSelect: {
+        styleOverrides: {
+          select: {
+            backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(15,23,42,0.045)',
+          },
         },
       },
     },

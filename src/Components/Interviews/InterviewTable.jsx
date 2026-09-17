@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -10,135 +9,38 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import Select from '@mui/material/Select';
-import PhoneIcon from '@mui/icons-material/Phone';
-import WhatsAppIcon from '@mui/icons-material/WhatsApp';
-import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
-import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import ReplayIcon from '@mui/icons-material/Replay';
-import EmojiEventsOutlinedIcon from '@mui/icons-material/EmojiEventsOutlined';
-import HighlightOffIcon from '@mui/icons-material/HighlightOff';
-import Divider from '@mui/material/Divider';
 import StatusBadge from '../Shared/StatusBadge';
-import SkillChipsDisplay from '../Shared/SkillChipsDisplay';
-import { ACTIVE_STATUS_ORDER, STATUS_META, getStatusLabel } from '../../statusConfig';
+import PhoneAction from '../Shared/PhoneAction';
 import { formatRelativeTime } from '../../utils/interviewUtils';
 
-function RowActions({
-  interview,
-  variant,
-  onEdit,
-  onDecline,
-  onActivate,
-  onDelete,
-  onMarkCracked,
-  onMarkNoResponse,
-}) {
-  const [menuAnchor, setMenuAnchor] = useState(null);
-
+function RowActions({ interview, onEdit, onDelete }) {
   return (
     <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.25 }} onClick={(e) => e.stopPropagation()}>
-      {variant === 'active' && (
-        <>
-          <Tooltip title="Edit">
-            <IconButton size="small" aria-label={`Edit ${interview.companyName}`} onClick={() => onEdit?.(interview)}>
-              <EditOutlinedIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="More">
-            <IconButton size="small" aria-label="More actions" onClick={(e) => setMenuAnchor(e.currentTarget)}>
-              <MoreHorizIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Menu anchorEl={menuAnchor} open={!!menuAnchor} onClose={() => setMenuAnchor(null)}>
-            <MenuItem
-              onClick={() => {
-                setMenuAnchor(null);
-                onMarkCracked?.(interview);
-              }}
-            >
-              <EmojiEventsOutlinedIcon fontSize="small" sx={{ mr: 1, color: 'success.main' }} />
-              Mark as Cracked
-            </MenuItem>
-            <MenuItem
-              onClick={() => {
-                setMenuAnchor(null);
-                onMarkNoResponse?.(interview);
-              }}
-            >
-              <HighlightOffIcon fontSize="small" sx={{ mr: 1, color: 'warning.main' }} />
-              No Response
-            </MenuItem>
-            <MenuItem
-              onClick={() => {
-                setMenuAnchor(null);
-                onDecline?.(interview);
-              }}
-            >
-              Decline
-            </MenuItem>
-            <Divider />
-            <MenuItem
-              onClick={() => {
-                setMenuAnchor(null);
-                onDelete?.(interview);
-              }}
-              sx={{ color: 'error.main' }}
-            >
-              <DeleteOutlineIcon fontSize="small" sx={{ mr: 1 }} />
-              Delete
-            </MenuItem>
-          </Menu>
-        </>
-      )}
-
-      {(variant === 'uncracked' || variant === 'cracked') && (
-        <>
-          <Tooltip title={variant === 'cracked' ? 'Reopen' : 'Activate'}>
-            <IconButton
-              size="small"
-              aria-label={`${variant === 'cracked' ? 'Reopen' : 'Activate'} ${interview.companyName}`}
-              onClick={() => onActivate?.(interview)}
-            >
-              <ReplayIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Delete">
-            <IconButton size="small" color="error" aria-label={`Delete ${interview.companyName}`} onClick={() => onDelete?.(interview)}>
-              <DeleteOutlineIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        </>
-      )}
+      <Tooltip title="Edit">
+        <IconButton size="small" aria-label={`Edit ${interview.companyName}`} onClick={() => onEdit?.(interview)}>
+          <EditOutlinedIcon fontSize="small" />
+        </IconButton>
+      </Tooltip>
+      <Tooltip title="Delete">
+        <IconButton size="small" color="error" aria-label={`Delete ${interview.companyName}`} onClick={() => onDelete?.(interview)}>
+          <DeleteOutlineIcon fontSize="small" />
+        </IconButton>
+      </Tooltip>
     </Box>
   );
 }
 
-export default function InterviewTable({
-  interviews,
-  variant = 'active',
-  onView,
-  onEdit,
-  onDecline,
-  onActivate,
-  onDelete,
-  onQuickStatusChange,
-  onMarkCracked,
-  onMarkNoResponse,
-}) {
+export default function InterviewTable({ interviews, onView, onEdit, onDelete }) {
   return (
     <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 1 }}>
       <Table size="small" sx={{ minWidth: 760 }} aria-label="Interviews table">
         <TableHead>
           <TableRow sx={{ '& th': { fontSize: { xs: '0.72rem', sm: '0.8125rem' }, whiteSpace: 'nowrap' } }}>
             <TableCell>Company &amp; Position</TableCell>
-            <TableCell>Status{variant !== 'active' ? ' / Was' : ''}</TableCell>
+            <TableCell>Status</TableCell>
             <TableCell>HR / Contact</TableCell>
-            <TableCell>Skills</TableCell>
             <TableCell>Last Updated</TableCell>
             <TableCell align="right">Actions</TableCell>
           </TableRow>
@@ -149,7 +51,12 @@ export default function InterviewTable({
               key={interview.id}
               hover
               onClick={() => onView?.(interview)}
-              sx={{ cursor: 'pointer' }}
+              sx={{
+                cursor: 'pointer',
+                '&:nth-of-type(odd)': {
+                  bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(15,23,42,0.02)'),
+                },
+              }}
             >
               <TableCell sx={{ maxWidth: 220 }}>
                 <Typography variant="body2" fontWeight={700} noWrap>
@@ -161,38 +68,7 @@ export default function InterviewTable({
               </TableCell>
 
               <TableCell sx={{ minWidth: { xs: 108, sm: 168 }, py: { xs: 0.5, sm: 1 } }}>
-                {variant === 'active' ? (
-                  <Select
-                    value={interview.initialStatus}
-                    onChange={(e) => onQuickStatusChange?.(interview.id, e.target.value)}
-                    onClick={(e) => e.stopPropagation()}
-                    size="small"
-                    aria-label={`Change status for ${interview.companyName}`}
-                    sx={{
-                      fontSize: { xs: '0.68rem', sm: '0.8rem' },
-                      minWidth: { xs: 100, sm: 160 },
-                      '& .MuiSelect-select': {
-                        py: { xs: 0.375, sm: 0.75 },
-                        pr: { xs: 3, sm: 4 },
-                      },
-                    }}
-                  >
-                    {ACTIVE_STATUS_ORDER.map((status) => (
-                      <MenuItem key={status} value={status} sx={{ fontSize: { xs: '0.72rem', sm: '0.875rem' } }}>
-                        {STATUS_META[status].label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                ) : (
-                  <Box>
-                    <StatusBadge status={interview.initialStatus} />
-                    {interview.previousStatus !== undefined && (
-                      <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>
-                        Was: {getStatusLabel(interview.previousStatus)}
-                      </Typography>
-                    )}
-                  </Box>
-                )}
+                <StatusBadge status={interview.initialStatus} />
               </TableCell>
 
               <TableCell sx={{ minWidth: 180 }}>
@@ -202,59 +78,26 @@ export default function InterviewTable({
                   </Typography>
                 )}
                 {interview.contactNumber && (
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
-                    <Typography variant="caption" color="text.secondary" noWrap>
-                      {interview.contactNumber}
-                    </Typography>
-                    <IconButton
-                      size="small"
-                      aria-label="Call contact"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        window.location.href = `tel:${interview.contactNumber}`;
-                      }}
-                    >
-                      <PhoneIcon sx={{ fontSize: 13 }} />
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      aria-label="Message on WhatsApp"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const digits = String(interview.contactNumber || '').replace(/\D/g, '');
-                        if (digits) window.open(`https://wa.me/${digits}`, '_blank', 'noopener,noreferrer');
-                      }}
-                    >
-                      <WhatsAppIcon sx={{ fontSize: 13 }} />
-                    </IconButton>
-                  </Box>
+                  <PhoneAction phone={interview.contactNumber} variant="caption" sx={{ display: 'block' }} />
                 )}
                 {interview.contactEmail && (
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25, minWidth: 0 }}>
-                    <Typography variant="caption" color="text.secondary" noWrap sx={{ maxWidth: 140 }}>
-                      {interview.contactEmail}
-                    </Typography>
-                    <IconButton
-                      size="small"
-                      aria-label="Email contact"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        window.location.href = `mailto:${interview.contactEmail}`;
-                      }}
-                    >
-                      <EmailOutlinedIcon sx={{ fontSize: 13 }} />
-                    </IconButton>
-                  </Box>
+                  <Typography
+                    component="a"
+                    href={`mailto:${interview.contactEmail}`}
+                    onClick={(e) => e.stopPropagation()}
+                    variant="caption"
+                    display="block"
+                    noWrap
+                    sx={{ color: 'primary.main', textDecoration: 'none', maxWidth: 160 }}
+                  >
+                    {interview.contactEmail}
+                  </Typography>
                 )}
                 {!interview.contactName && !interview.contactNumber && !interview.contactEmail && (
                   <Typography variant="caption" color="text.secondary">
                     —
                   </Typography>
                 )}
-              </TableCell>
-
-              <TableCell sx={{ maxWidth: 220 }}>
-                <SkillChipsDisplay skills={interview.skills} max={3} />
               </TableCell>
 
               <TableCell sx={{ whiteSpace: 'nowrap' }}>
@@ -264,16 +107,7 @@ export default function InterviewTable({
               </TableCell>
 
               <TableCell align="right">
-                <RowActions
-                  interview={interview}
-                  variant={variant}
-                  onEdit={onEdit}
-                  onDecline={onDecline}
-                  onActivate={onActivate}
-                  onDelete={onDelete}
-                  onMarkCracked={onMarkCracked}
-                  onMarkNoResponse={onMarkNoResponse}
-                />
+                <RowActions interview={interview} onEdit={onEdit} onDelete={onDelete} />
               </TableCell>
             </TableRow>
           ))}

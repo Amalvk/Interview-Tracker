@@ -1,3 +1,4 @@
+import { NavLink } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -10,7 +11,7 @@ import { NAV_ITEMS } from './navItems';
 
 export const SIDEBAR_WIDTH = 248;
 
-export default function Sidebar({ activePage, onNavigate, counts = {}, onNavItemClick }) {
+export default function Sidebar({ counts = {}, onNavItemClick }) {
   return (
     <Box
       sx={{
@@ -46,38 +47,34 @@ export default function Sidebar({ activePage, onNavigate, counts = {}, onNavItem
       <List sx={{ px: 1.5, flexGrow: 1 }} component="nav" aria-label="Main navigation">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
-          const selected = activePage === item.key;
           const count = counts[item.key];
           return (
             <ListItemButton
               key={item.key}
-              selected={selected}
-              onClick={() => {
-                onNavigate(item.key);
-                onNavItemClick?.();
-              }}
+              component={NavLink}
+              to={item.path}
+              end={item.path === '/'}
+              onClick={onNavItemClick}
               sx={{
                 borderRadius: 2,
                 mb: 0.5,
-                '&.Mui-selected': {
+                '&.active': {
                   bgcolor: (theme) =>
-                    theme.palette.mode === 'dark' ? 'rgba(129,140,248,0.16)' : 'rgba(79,70,229,0.08)',
+                    theme.palette.mode === 'dark' ? 'rgba(74,222,128,0.16)' : 'rgba(22,163,74,0.08)',
                   color: 'primary.main',
                   '& .MuiListItemIcon-root': { color: 'primary.main' },
+                  '& .MuiListItemText-primary': { fontWeight: 600 },
                 },
-                '&.Mui-selected:hover': {
+                '&.active:hover': {
                   bgcolor: (theme) =>
-                    theme.palette.mode === 'dark' ? 'rgba(129,140,248,0.22)' : 'rgba(79,70,229,0.12)',
+                    theme.palette.mode === 'dark' ? 'rgba(74,222,128,0.22)' : 'rgba(22,163,74,0.12)',
                 },
               }}
             >
               <ListItemIcon sx={{ minWidth: 36 }}>
                 <Icon fontSize="small" />
               </ListItemIcon>
-              <ListItemText
-                primary={item.label}
-                primaryTypographyProps={{ fontSize: '0.9rem', fontWeight: selected ? 600 : 500 }}
-              />
+              <ListItemText primary={item.label} primaryTypographyProps={{ fontSize: '0.9rem', fontWeight: 500 }} />
               {typeof count === 'number' && count > 0 && (
                 <Chip label={count} size="small" sx={{ height: 20, fontSize: '0.7rem' }} />
               )}

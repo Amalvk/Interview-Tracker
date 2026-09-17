@@ -1,25 +1,30 @@
 import { useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Card from '@mui/material/Card';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
+import Divider from '@mui/material/Divider';
 import LinearProgress from '@mui/material/LinearProgress';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import EmojiEventsOutlinedIcon from '@mui/icons-material/EmojiEventsOutlined';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
+import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined';
 import StatCard from './StatCard';
+import PipelineChart from './PipelineChart';
 import StatusBadge from '../Shared/StatusBadge';
 import CommonSkeleton from '../Skelton';
 import ErrorState from '../Shared/ErrorState';
 import EmptyState from '../Shared/EmptyState';
 import { fetchInterviewsFromFirestore } from '../../Redux/formSlice';
 import {
-  ACTIVE_STATUS_ORDER,
+  PIPELINE_STATUS_ORDER,
   STATUS,
+  STATUS_META,
   getStatusLabel,
   isActiveStage,
   isCrackedStatus,
@@ -27,8 +32,9 @@ import {
 } from '../../statusConfig';
 import { formatRelativeTime } from '../../utils/interviewUtils';
 
-export default function Dashboard({ onNavigate }) {
+export default function Dashboard() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { interviewList, fetchStatus } = useSelector((state) => ({
     interviewList: state.form.interviewList,
     fetchStatus: state.form.fetchStatus,
@@ -39,18 +45,20 @@ export default function Dashboard({ onNavigate }) {
     const active = interviewList.filter((i) => isActiveStage(i.initialStatus)).length;
     const cracked = interviewList.filter((i) => isCrackedStatus(i.initialStatus)).length;
     const uncracked = interviewList.filter((i) => isUncrackedStatus(i.initialStatus)).length;
+    const noResponse = interviewList.filter((i) => i.initialStatus === STATUS.NO_RESPONSE).length;
     const inProgress = interviewList.filter((i) =>
       [STATUS.HR_ROUND, STATUS.TECHNICAL_ROUND, STATUS.MANAGEMENT_ROUND].includes(i.initialStatus),
     ).length;
-    return { total, active, uncracked, cracked, inProgress };
+    return { total, active, uncracked, cracked, noResponse, inProgress };
   }, [interviewList]);
 
   const pipeline = useMemo(
     () =>
-      ACTIVE_STATUS_ORDER.map((status) => ({
+      PIPELINE_STATUS_ORDER.map((status) => ({
         status,
         label: getStatusLabel(status),
         count: interviewList.filter((i) => i.initialStatus === status).length,
+        color: STATUS_META[status].solid,
       })),
     [interviewList],
   );
@@ -75,7 +83,7 @@ export default function Dashboard({ onNavigate }) {
         title="No interviews yet"
         description="Start tracking your next opportunity by adding your first interview."
         actionLabel="+ Add Interview"
-        onAction={() => onNavigate?.('active')}
+        onAction={() => navigate('/active')}
       />
     );
   }
@@ -90,19 +98,22 @@ export default function Dashboard({ onNavigate }) {
       </Box>
 
       <Grid container spacing={2}>
-        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
-          <StatCard label="Total Interviews" value={stats.total} icon={<Inventory2OutlinedIcon />} accentColor="#4f46e5" />
+        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
+          <StatCard label="Total Interviews" value={stats.total} icon={<Inventory2OutlinedIcon />} accentColor="#16A34A" />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
-          <StatCard label="Active" value={stats.active} icon={<WorkOutlineIcon />} accentColor="#4338CA" />
+        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
+          <StatCard label="Active" value={stats.active} icon={<WorkOutlineIcon />} accentColor="#059669" />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
           <StatCard label="In Progress" value={stats.inProgress} icon={<TrendingUpIcon />} accentColor="#0F766E" />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
           <StatCard label="Cracked" value={stats.cracked} icon={<EmojiEventsOutlinedIcon />} accentColor="#15803D" />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
+          <StatCard label="No Response" value={stats.noResponse} icon={<ScheduleOutlinedIcon />} accentColor="#CA8A04" />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
           <StatCard label="Uncracked" value={stats.uncracked} icon={<HighlightOffIcon />} accentColor="#B91C1C" />
         </Grid>
       </Grid>
@@ -114,7 +125,7 @@ export default function Dashboard({ onNavigate }) {
               Pipeline
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Applied → HR → Technical → Management
+              HR → Technical → Management → No Response / Uncracked
             </Typography>
             <Stack spacing={1.75}>
               {pipeline.map((stage) => (
@@ -128,11 +139,23 @@ export default function Dashboard({ onNavigate }) {
                   <LinearProgress
                     variant="determinate"
                     value={stats.total ? (stage.count / stats.total) * 100 : 0}
-                    sx={{ height: 8, borderRadius: 4 }}
+                    sx={{
+                      height: 8,
+                      borderRadius: 4,
+                      bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.08)'),
+                      '& .MuiLinearProgress-bar': { bgcolor: stage.color },
+                    }}
                   />
                 </Box>
               ))}
             </Stack>
+
+            <Divider sx={{ my: 2.5 }} />
+
+            <Typography variant="subtitle2" sx={{ mb: 1.5 }}>
+              Status breakdown
+            </Typography>
+            <PipelineChart stages={pipeline} total={stats.total} />
           </Card>
         </Grid>
 

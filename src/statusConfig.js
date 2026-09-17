@@ -13,12 +13,13 @@ export const STATUS = {
   NO_RESPONSE: 7,
 };
 
-// The four in-progress pipeline stages. Shown in the Active Interviews quick-status
-// dropdown, its status filter, and the Dashboard pipeline chart. Offer Received,
-// Uncracked and No Response are terminal outcomes handled by their own sections
-// (Cracked / Uncracked) instead of living in this list.
+// The in-progress pipeline stages. Shown in the Active Interviews status
+// filter and the Dashboard pipeline chart. "Applied" was dropped — every
+// tracked interview already implies an application, so the pipeline starts
+// at HR Round. Offer Received, Uncracked and No Response are terminal
+// outcomes handled by their own sections (Cracked / Uncracked) instead of
+// living in this list.
 export const ACTIVE_STATUS_ORDER = [
-  STATUS.APPLIED,
   STATUS.HR_ROUND,
   STATUS.TECHNICAL_ROUND,
   STATUS.MANAGEMENT_ROUND,
@@ -26,6 +27,22 @@ export const ACTIVE_STATUS_ORDER = [
 
 // Statuses that land an interview in the "Uncracked" section.
 export const UNCRACKED_STATUSES = [STATUS.UNCRACKED, STATUS.NO_RESPONSE];
+
+// Every status, in the order shown in the Edit Interview form — the only
+// place status can be changed. The in-progress stages first, then the
+// terminal outcomes. APPLIED is kept out (no longer offered going forward)
+// but its STATUS_META entry stays so any legacy record still renders fine.
+export const ALL_STATUS_ORDER = [
+  ...ACTIVE_STATUS_ORDER,
+  STATUS.NO_RESPONSE,
+  STATUS.OFFER_RECEIVED,
+  STATUS.UNCRACKED,
+];
+
+// The full pipeline breakdown shown on the Dashboard: in-progress stages
+// plus both terminal outcomes (Cracked has its own headline stat card, so
+// it isn't repeated here).
+export const PIPELINE_STATUS_ORDER = [...ACTIVE_STATUS_ORDER, STATUS.NO_RESPONSE, STATUS.UNCRACKED];
 
 export function isActiveStage(status) {
   return ACTIVE_STATUS_ORDER.includes(status);
@@ -39,41 +56,55 @@ export function isUncrackedStatus(status) {
   return UNCRACKED_STATUSES.includes(status);
 }
 
+// `solid` is a single mode-invariant hex per status — used wherever a color
+// needs to work as a filled shape rather than text-on-tint (the Dashboard
+// pipeline chart, and the status dropdown's colored options). This set of
+// five (HR/Technical/Management/No Response/Uncracked) was run through the
+// dataviz skill's categorical-palette validator for both light and dark
+// chart surfaces — every adjacent pair clears the CVD and normal-vision
+// separation floors. Don't hand-pick a replacement without re-validating.
 export const STATUS_META = {
   [STATUS.APPLIED]: {
     label: 'Applied',
-    light: { bg: '#E2E8F0', color: '#334155' },
-    dark: { bg: 'rgba(148,163,184,0.18)', color: '#cbd5e1' },
+    light: { bg: '#DBEAFE', color: '#1D4ED8' },
+    dark: { bg: 'rgba(96,165,250,0.18)', color: '#93c5fd' },
+    solid: '#1D4ED8',
   },
   [STATUS.HR_ROUND]: {
     label: 'HR Round',
-    light: { bg: '#EDE9FE', color: '#6D28D9' },
-    dark: { bg: 'rgba(167,139,250,0.18)', color: '#c4b5fd' },
+    light: { bg: '#DBEAFE', color: '#1D4ED8' },
+    dark: { bg: 'rgba(29,78,216,0.22)', color: '#93c5fd' },
+    solid: '#1D4ED8',
   },
   [STATUS.TECHNICAL_ROUND]: {
     label: 'Technical Round',
-    light: { bg: '#E0E7FF', color: '#4338CA' },
-    dark: { bg: 'rgba(129,140,248,0.18)', color: '#a5b4fc' },
+    light: { bg: '#CFFAFE', color: '#0E7490' },
+    dark: { bg: 'rgba(34,211,238,0.20)', color: '#67e8f9' },
+    solid: '#0891B2',
   },
   [STATUS.MANAGEMENT_ROUND]: {
     label: 'Management Round',
-    light: { bg: '#CCFBF1', color: '#0F766E' },
-    dark: { bg: 'rgba(45,212,191,0.18)', color: '#5eead4' },
+    light: { bg: '#DCFCE7', color: '#166534' },
+    dark: { bg: 'rgba(34,197,94,0.20)', color: '#4ade80' },
+    solid: '#16A34A',
   },
   [STATUS.NO_RESPONSE]: {
     label: 'No Response',
-    light: { bg: '#FEF3C7', color: '#92400E' },
-    dark: { bg: 'rgba(251,191,36,0.18)', color: '#fcd34d' },
+    light: { bg: '#FEF3C7', color: '#B45309' },
+    dark: { bg: 'rgba(217,119,6,0.20)', color: '#fbbf24' },
+    solid: '#D97706',
   },
   [STATUS.OFFER_RECEIVED]: {
     label: 'Offer Received',
     light: { bg: '#DCFCE7', color: '#15803D' },
     dark: { bg: 'rgba(74,222,128,0.18)', color: '#86efac' },
+    solid: '#15803D',
   },
   [STATUS.UNCRACKED]: {
     label: 'Uncracked',
-    light: { bg: '#FEE2E2', color: '#B91C1C' },
-    dark: { bg: 'rgba(248,113,113,0.18)', color: '#fca5a5' },
+    light: { bg: '#FFE4E6', color: '#BE123C' },
+    dark: { bg: 'rgba(190,18,60,0.20)', color: '#fb7185' },
+    solid: '#BE123C',
   },
 };
 

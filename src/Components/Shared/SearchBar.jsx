@@ -11,9 +11,8 @@ export default function SearchBar({ value, onChange, placeholder = 'Search…', 
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       size="small"
-      fullWidth
       aria-label={ariaLabel || placeholder}
-      sx={{ minWidth: { xs: '100%', sm: 260 }, ...sx }}
+      sx={{ width: { xs: '100%', sm: 200 }, ...sx }}
       slotProps={{
         input: {
           startAdornment: (

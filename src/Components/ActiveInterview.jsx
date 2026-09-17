@@ -11,11 +11,7 @@ import AddIcon from '@mui/icons-material/Add';
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 import ViewModuleOutlinedIcon from '@mui/icons-material/ViewModuleOutlined';
 import TableRowsOutlinedIcon from '@mui/icons-material/TableRowsOutlined';
-import {
-  deleteInterviewById,
-  fetchInterviewsFromFirestore,
-  updateInterviewStatus,
-} from '../Redux/formSlice';
+import { deleteInterviewById, fetchInterviewsFromFirestore } from '../Redux/formSlice';
 import InterviewCardItem from './Interviews/InterviewCardItem';
 import InterviewTable from './Interviews/InterviewTable';
 import InterviewFormModal from './InterviewForm/InterviewFormModal';
@@ -23,12 +19,13 @@ import InterviewDetailsDrawer from './InterviewDetails/InterviewDetailsDrawer';
 import ConfirmWarningModal from './ConfirmWarningModal';
 import SearchBar from './Shared/SearchBar';
 import LabeledSelect from './Shared/LabeledSelect';
+import DateSortToggle from './Shared/DateSortToggle';
 import EmptyState from './Shared/EmptyState';
 import ErrorState from './Shared/ErrorState';
 import CommonSkeleton from './Skelton';
 import { useToast } from '../context/ToastContext';
-import { ACTIVE_STATUS_ORDER, STATUS, STATUS_META, isActiveStage } from '../statusConfig';
-import { SORT_OPTIONS, matchesSearch, sortInterviews } from '../utils/interviewUtils';
+import { ACTIVE_STATUS_ORDER, STATUS_META, isActiveStage } from '../statusConfig';
+import { matchesSearch, sortInterviews } from '../utils/interviewUtils';
 
 const STATUS_FILTER_OPTIONS = [
   { value: 'all', label: 'All Statuses' },
@@ -58,7 +55,7 @@ export default function ActiveInterview() {
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [sortKey, setSortKey] = useState('recentlyUpdated');
+  const [sortDir, setSortDir] = useState('desc');
   const [viewMode, setViewMode] = useState(getInitialViewMode);
 
   const handleViewModeChange = (_, next) => {
@@ -78,17 +75,15 @@ export default function ActiveInterview() {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [detailsInterview, setDetailsInterview] = useState(null);
 
-  const [declineTarget, setDeclineTarget] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
-  const [noResponseTarget, setNoResponseTarget] = useState(null);
 
   const filtered = useMemo(() => {
     let list = interviewList.filter((item) => matchesSearch(item, search));
     if (statusFilter !== 'all') {
       list = list.filter((item) => item.initialStatus === statusFilter);
     }
-    return sortInterviews(list, sortKey);
-  }, [interviewList, search, statusFilter, sortKey]);
+    return sortInterviews(list, sortDir);
+  }, [interviewList, search, statusFilter, sortDir]);
 
   const openAddModal = () => {
     setFormMode('add');
@@ -106,64 +101,6 @@ export default function ActiveInterview() {
   const openDetails = (interview) => {
     setDetailsInterview(interview);
     setDetailsOpen(true);
-  };
-
-  const handleQuickStatusChange = async (id, newStatus) => {
-    const result = await dispatch(updateInterviewStatus({ id, newStatus }));
-    if (updateInterviewStatus.fulfilled.match(result)) {
-      showToast('Interview status updated.', 'success');
-    } else {
-      showToast('Could not update status. Please try again.', 'error');
-    }
-  };
-
-  const confirmDecline = async () => {
-    if (!declineTarget) return;
-    const result = await dispatch(
-      updateInterviewStatus({
-        id: declineTarget.id,
-        newStatus: STATUS.UNCRACKED,
-        previousStatus: declineTarget.initialStatus,
-      }),
-    );
-    if (updateInterviewStatus.fulfilled.match(result)) {
-      showToast(`Moved "${declineTarget.companyName}" to Uncracked.`, 'success');
-    } else {
-      showToast('Could not update this interview. Please try again.', 'error');
-    }
-    setDeclineTarget(null);
-  };
-
-  const handleMarkCracked = async (interview) => {
-    const result = await dispatch(
-      updateInterviewStatus({
-        id: interview.id,
-        newStatus: STATUS.OFFER_RECEIVED,
-        previousStatus: interview.initialStatus,
-      }),
-    );
-    if (updateInterviewStatus.fulfilled.match(result)) {
-      showToast(`"${interview.companyName}" moved to Cracked. Congrats!`, 'success');
-    } else {
-      showToast('Could not update this interview. Please try again.', 'error');
-    }
-  };
-
-  const confirmNoResponse = async () => {
-    if (!noResponseTarget) return;
-    const result = await dispatch(
-      updateInterviewStatus({
-        id: noResponseTarget.id,
-        newStatus: STATUS.NO_RESPONSE,
-        previousStatus: noResponseTarget.initialStatus,
-      }),
-    );
-    if (updateInterviewStatus.fulfilled.match(result)) {
-      showToast(`Moved "${noResponseTarget.companyName}" to Uncracked.`, 'success');
-    } else {
-      showToast('Could not update this interview. Please try again.', 'error');
-    }
-    setNoResponseTarget(null);
   };
 
   const confirmDelete = async () => {
@@ -195,17 +132,18 @@ export default function ActiveInterview() {
       </Box>
 
       {hasAnyInterviews && (
-        <Stack
-          direction={{ xs: 'column', sm: 'row' }}
-          spacing={1.5}
-          alignItems={{ sm: 'center' }}
-          justifyContent="space-between"
-        >
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ sm: 'center' }} sx={{ flexGrow: 1 }}>
-            <SearchBar value={search} onChange={setSearch} placeholder="Search company, position, HR, skill…" />
-            <LabeledSelect label="Status" value={statusFilter} onChange={setStatusFilter} options={STATUS_FILTER_OPTIONS} />
-            <LabeledSelect label="Sort" value={sortKey} onChange={setSortKey} options={SORT_OPTIONS} />
-          </Stack>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ sm: 'center' }}>
+          <SearchBar value={search} onChange={setSearch} placeholder="Search company, position, HR, skill…" />
+          <LabeledSelect label="Status" value={statusFilter} onChange={setStatusFilter} options={STATUS_FILTER_OPTIONS} />
+          <DateSortToggle direction={sortDir} onToggle={() => setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))} />
+        </Stack>
+      )}
+
+      {hasAnyInterviews && (
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
+          <Typography variant="body2" color="text.secondary">
+            {filtered.length} of {interviewList.length} interview{interviewList.length === 1 ? '' : 's'}
+          </Typography>
 
           <ToggleButtonGroup
             value={viewMode}
@@ -225,13 +163,7 @@ export default function ActiveInterview() {
               </Tooltip>
             </ToggleButton>
           </ToggleButtonGroup>
-        </Stack>
-      )}
-
-      {hasAnyInterviews && (
-        <Typography variant="body2" color="text.secondary">
-          {filtered.length} of {interviewList.length} interview{interviewList.length === 1 ? '' : 's'}
-        </Typography>
+        </Box>
       )}
 
       {fetchStatus === 'loading' && interviewList.length === 0 && <CommonSkeleton />}
@@ -255,19 +187,7 @@ export default function ActiveInterview() {
       )}
 
       {filtered.length > 0 && viewMode === 'table' ? (
-        <Box sx={{ mx: { xs: -2, sm: 0 } }}>
-          <InterviewTable
-            interviews={filtered}
-            variant="active"
-            onView={openDetails}
-            onEdit={openEditModal}
-            onDecline={setDeclineTarget}
-            onDelete={setDeleteTarget}
-            onQuickStatusChange={handleQuickStatusChange}
-            onMarkCracked={handleMarkCracked}
-            onMarkNoResponse={setNoResponseTarget}
-          />
-        </Box>
+        <InterviewTable interviews={filtered} onView={openDetails} onEdit={openEditModal} onDelete={setDeleteTarget} />
       ) : (
         <Box
           sx={{
@@ -280,14 +200,9 @@ export default function ActiveInterview() {
             <InterviewCardItem
               key={interview.id}
               interview={interview}
-              variant="active"
               onView={openDetails}
               onEdit={openEditModal}
-              onDecline={setDeclineTarget}
               onDelete={setDeleteTarget}
-              onQuickStatusChange={handleQuickStatusChange}
-              onMarkCracked={handleMarkCracked}
-              onMarkNoResponse={setNoResponseTarget}
             />
           ))}
         </Box>
@@ -305,34 +220,6 @@ export default function ActiveInterview() {
         onClose={() => setDetailsOpen(false)}
         interview={detailsInterview}
         onEdit={openEditModal}
-      />
-
-      <ConfirmWarningModal
-        open={!!declineTarget}
-        onClose={() => setDeclineTarget(null)}
-        onConfirm={confirmDecline}
-        title="Decline interview?"
-        message={
-          declineTarget
-            ? `Move "${declineTarget.companyName}" to the Uncracked list? You can reactivate it later.`
-            : ''
-        }
-        confirmLabel="Decline"
-        cancelLabel="Cancel"
-      />
-
-      <ConfirmWarningModal
-        open={!!noResponseTarget}
-        onClose={() => setNoResponseTarget(null)}
-        onConfirm={confirmNoResponse}
-        title="Mark as no response?"
-        message={
-          noResponseTarget
-            ? `Move "${noResponseTarget.companyName}" to the Uncracked list as No Response? You can reactivate it later.`
-            : ''
-        }
-        confirmLabel="No Response"
-        cancelLabel="Cancel"
       />
 
       <ConfirmWarningModal

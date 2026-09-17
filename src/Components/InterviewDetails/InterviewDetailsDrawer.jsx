@@ -10,8 +10,7 @@ import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import { format } from 'date-fns';
 import StatusBadge from '../Shared/StatusBadge';
-import SkillChipsDisplay from '../Shared/SkillChipsDisplay';
-import { skillsStringToArray } from '../Shared/SkillChipsInput';
+import PhoneAction from '../Shared/PhoneAction';
 import { getStatusLabel } from '../../statusConfig';
 
 function formatWhen(iso) {
@@ -24,14 +23,23 @@ function buildTimeline(item) {
   const events = [];
 
   const notes = Array.isArray(item.commentList) ? item.commentList : [];
-  notes.forEach((note) => {
+  if (notes.length) {
+    notes.forEach((note) => {
+      events.push({
+        id: `note-${note.id}`,
+        when: note.createdAt,
+        label: note.text,
+        kind: 'note',
+      });
+    });
+  } else if (item.comments) {
     events.push({
-      id: `note-${note.id}`,
-      when: note.createdAt,
-      label: note.text,
+      id: 'legacy-comment',
+      when: item.createdAt || item.applicationDate,
+      label: String(item.comments),
       kind: 'note',
     });
-  });
+  }
 
   const createdAt = item.createdAt || item.applicationDate;
   events.push({
@@ -58,7 +66,6 @@ function buildTimeline(item) {
 export default function InterviewDetailsDrawer({ open, onClose, interview, onEdit }) {
   if (!interview) return null;
   const timeline = buildTimeline(interview);
-  const skills = skillsStringToArray(interview.skills);
 
   return (
     <Drawer
@@ -97,7 +104,11 @@ export default function InterviewDetailsDrawer({ open, onClose, interview, onEdi
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <PhoneIcon fontSize="small" sx={{ color: 'text.secondary' }} />
-              <Typography variant="body2">{interview.contactNumber || 'Not provided'}</Typography>
+              {interview.contactNumber ? (
+                <PhoneAction phone={interview.contactNumber} />
+              ) : (
+                <Typography variant="body2">Not provided</Typography>
+              )}
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <EmailOutlinedIcon fontSize="small" sx={{ color: 'text.secondary' }} />
@@ -114,49 +125,6 @@ export default function InterviewDetailsDrawer({ open, onClose, interview, onEdi
                 <Typography variant="body2">Not provided</Typography>
               )}
             </Box>
-          </Box>
-        </Box>
-
-        <Divider />
-
-        <Box>
-          <Typography variant="overline" color="text.secondary">
-            Skills
-          </Typography>
-          <Box sx={{ mt: 1 }}>
-            {skills.length ? <SkillChipsDisplay skills={interview.skills} /> : (
-              <Typography variant="body2" color="text.secondary">No skills listed.</Typography>
-            )}
-          </Box>
-        </Box>
-
-        <Divider />
-
-        <Box>
-          <Typography variant="overline" color="text.secondary">
-            Comments
-          </Typography>
-          <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
-            {Array.isArray(interview.commentList) && interview.commentList.length ? (
-              [...interview.commentList]
-                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-                .map((c) => (
-                  <Box key={c.id} sx={{ pl: 1.5, borderLeft: (theme) => `2px solid ${theme.palette.divider}` }}>
-                    <Typography variant="caption" color="text.secondary" display="block">
-                      {formatWhen(c.createdAt)}
-                    </Typography>
-                    <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-                      {c.text}
-                    </Typography>
-                  </Box>
-                ))
-            ) : interview.comments ? (
-              <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-                {interview.comments}
-              </Typography>
-            ) : (
-              <Typography variant="body2" color="text.secondary">No comments yet.</Typography>
-            )}
           </Box>
         </Box>
 

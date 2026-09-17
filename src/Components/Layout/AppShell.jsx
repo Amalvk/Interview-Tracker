@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
 import Sidebar, { SIDEBAR_WIDTH } from './Sidebar';
@@ -13,23 +14,20 @@ import SettingsPage from '../Settings/SettingsPage';
 import { fetchInterviewsFromFirestore } from '../../Redux/formSlice';
 import { isActiveStage, isCrackedStatus, isUncrackedStatus } from '../../statusConfig';
 
-const PAGES = {
-  dashboard: Dashboard,
-  active: ActiveInterview,
-  cracked: CrackedInterview,
-  uncracked: UncrackedInterview,
-  topics: Topics,
-  settings: SettingsPage,
-};
-
 export default function AppShell() {
   const dispatch = useDispatch();
-  const [activePage, setActivePage] = useState('dashboard');
   const [mobileOpen, setMobileOpen] = useState(false);
+  const contentRef = useRef(null);
+  const { pathname } = useLocation();
 
   useEffect(() => {
     dispatch(fetchInterviewsFromFirestore());
   }, [dispatch]);
+
+  useEffect(() => {
+    contentRef.current?.scrollTo({ top: 0 });
+    setMobileOpen(false);
+  }, [pathname]);
 
   const interviewList = useSelector((state) => state.form.interviewList);
   const counts = useMemo(() => {
@@ -39,17 +37,10 @@ export default function AppShell() {
     return { active, cracked, uncracked };
   }, [interviewList]);
 
-  const handleNavigate = (page) => {
-    setActivePage(page);
-    setMobileOpen(false);
-  };
-
-  const PageComponent = PAGES[activePage] || Dashboard;
-
   return (
     <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
       <Box sx={{ display: { xs: 'none', md: 'block' }, height: '100%', flexShrink: 0 }}>
-        <Sidebar activePage={activePage} onNavigate={handleNavigate} counts={counts} />
+        <Sidebar counts={counts} />
       </Box>
 
       <Drawer
@@ -58,15 +49,11 @@ export default function AppShell() {
         ModalProps={{ keepMounted: true }}
         sx={{ display: { xs: 'block', md: 'none' } }}
       >
-        <Sidebar
-          activePage={activePage}
-          onNavigate={handleNavigate}
-          counts={counts}
-          onNavItemClick={() => setMobileOpen(false)}
-        />
+        <Sidebar counts={counts} onNavItemClick={() => setMobileOpen(false)} />
       </Drawer>
 
       <Box
+        ref={contentRef}
         component="main"
         sx={{
           flexGrow: 1,
@@ -76,9 +63,17 @@ export default function AppShell() {
           overflowY: 'auto',
         }}
       >
-        <Header activePage={activePage} onMenuClick={() => setMobileOpen(true)} />
+        <Header onMenuClick={() => setMobileOpen(true)} />
         <Box sx={{ px: { xs: 2, sm: 3, md: 4 }, py: { xs: 2.5, sm: 3.5 } }}>
-          <PageComponent onNavigate={handleNavigate} />
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/active" element={<ActiveInterview />} />
+            <Route path="/cracked" element={<CrackedInterview />} />
+            <Route path="/uncracked" element={<UncrackedInterview />} />
+            <Route path="/topics" element={<Topics />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
         </Box>
       </Box>
     </Box>

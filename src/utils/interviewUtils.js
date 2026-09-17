@@ -1,23 +1,4 @@
 import { formatDistanceToNow } from 'date-fns';
-import { STATUS } from '../statusConfig';
-
-// Display order for the "Sort by Status" option — independent of the raw
-// stored number, since STATUS.UNCRACKED/NO_RESPONSE/OFFER_RECEIVED don't sit
-// in a contiguous range with the four in-progress stages.
-const STATUS_RANK = [
-  STATUS.APPLIED,
-  STATUS.HR_ROUND,
-  STATUS.TECHNICAL_ROUND,
-  STATUS.MANAGEMENT_ROUND,
-  STATUS.NO_RESPONSE,
-  STATUS.UNCRACKED,
-  STATUS.OFFER_RECEIVED,
-];
-
-function statusRank(status) {
-  const index = STATUS_RANK.indexOf(status);
-  return index === -1 ? STATUS_RANK.length : index;
-}
 
 // Best-effort timestamp for an interview: prefer the explicit updatedAt/createdAt
 // fields (added going forward) and fall back to the legacy applicationDate string
@@ -39,39 +20,22 @@ export function formatRelativeTime(item, field = 'updatedAt') {
   const date = getEffectiveTimestamp(item, field);
   if (date.getTime() === 0) return '—';
   try {
-    return formatDistanceToNow(date, { addSuffix: true });
+    // date-fns prefixes approximate durations with "about" (e.g. "about 2
+    // months ago") — drop it for a terser, cleaner label.
+    return formatDistanceToNow(date, { addSuffix: true }).replace(/^about /, '');
   } catch {
     return '—';
   }
 }
 
-export const SORT_OPTIONS = [
-  { value: 'recentlyUpdated', label: 'Recently Updated' },
-  { value: 'recentlyAdded', label: 'Recently Added' },
-  { value: 'companyAsc', label: 'Company Name A-Z' },
-  { value: 'companyDesc', label: 'Company Name Z-A' },
-  { value: 'status', label: 'Status' },
-];
-
-export function sortInterviews(list, sortKey) {
-  const items = [...list];
-  switch (sortKey) {
-    case 'recentlyAdded':
-      return items.sort(
-        (a, b) => getEffectiveTimestamp(b, 'createdAt') - getEffectiveTimestamp(a, 'createdAt'),
-      );
-    case 'companyAsc':
-      return items.sort((a, b) => (a.companyName || '').localeCompare(b.companyName || ''));
-    case 'companyDesc':
-      return items.sort((a, b) => (b.companyName || '').localeCompare(a.companyName || ''));
-    case 'status':
-      return items.sort((a, b) => statusRank(a.initialStatus) - statusRank(b.initialStatus));
-    case 'recentlyUpdated':
-    default:
-      return items.sort(
-        (a, b) => getEffectiveTimestamp(b, 'updatedAt') - getEffectiveTimestamp(a, 'updatedAt'),
-      );
-  }
+// Sorts by last-updated date only. `direction` is 'desc' (newest first,
+// the default) or 'asc' (oldest first) — toggled via a single icon button
+// rather than a field-picking dropdown.
+export function sortInterviews(list, direction = 'desc') {
+  const items = [...list].sort(
+    (a, b) => getEffectiveTimestamp(b, 'updatedAt') - getEffectiveTimestamp(a, 'updatedAt'),
+  );
+  return direction === 'asc' ? items.reverse() : items;
 }
 
 export function matchesSearch(item, query) {
