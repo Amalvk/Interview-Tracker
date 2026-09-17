@@ -30,7 +30,7 @@ import {
   isActiveStage,
   isCrackedStatus,
 } from '../../statusConfig';
-import { formatRelativeTime } from '../../utils/interviewUtils';
+import { formatRelativeTime, sortByDefaultOrder } from '../../utils/interviewUtils';
 
 export default function Dashboard() {
   const dispatch = useDispatch();
@@ -79,10 +79,8 @@ export default function Dashboard() {
   );
 
   const recent = useMemo(() => {
-    return interviewList
-      .filter((i) => isActiveStage(i.initialStatus))
-      .sort((a, b) => new Date(b.updatedAt || b.applicationDate || 0) - new Date(a.updatedAt || a.applicationDate || 0))
-      .slice(0, 5);
+    const active = interviewList.filter((i) => isActiveStage(i.initialStatus));
+    return sortByDefaultOrder(active).slice(0, 5);
   }, [interviewList]);
 
   if (fetchStatus === 'loading' && interviewList.length === 0) {
@@ -114,25 +112,25 @@ export default function Dashboard() {
       </Box>
 
       <Grid container spacing={2}>
-        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 4, lg: 2.4 }}>
           <StatCard label="Total Interviews" value={stats.total} icon={<Inventory2OutlinedIcon />} accentColor="#16A34A" />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 4, lg: 2.4 }}>
           <StatCard label="Active" value={stats.active} icon={<WorkOutlineIcon />} accentColor="#059669" />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 4, lg: 2.4 }}>
           <StatCard label="In Progress" value={stats.inProgress} icon={<TrendingUpIcon />} accentColor="#0F766E" />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 4, lg: 2.4 }}>
           <StatCard label="Cracked" value={stats.cracked} icon={<EmojiEventsOutlinedIcon />} accentColor="#15803D" />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 4, lg: 2.4 }}>
           <StatCard label="No Response" value={stats.noResponse} icon={<ScheduleOutlinedIcon />} accentColor="#CA8A04" />
         </Grid>
       </Grid>
 
       <Grid container spacing={2}>
-        <Grid size={{ xs: 12, md: 7 }}>
+        <Grid size={{ xs: 12, md: 7 }} sx={{ order: { xs: 2, md: 0 } }}>
           <Card sx={{ p: 2.5, height: '100%' }}>
             <Typography variant="h6" sx={{ mb: 0.5 }}>
               Pipeline
@@ -172,7 +170,7 @@ export default function Dashboard() {
           </Card>
         </Grid>
 
-        <Grid size={{ xs: 12, md: 5 }}>
+        <Grid size={{ xs: 12, md: 5 }} sx={{ order: { xs: 1, md: 0 } }}>
           <Card sx={{ p: 2.5, height: '100%' }}>
             <Typography variant="h6" sx={{ mb: 0.5 }}>
               Needs Your Attention

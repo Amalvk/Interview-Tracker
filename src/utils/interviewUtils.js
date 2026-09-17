@@ -1,4 +1,15 @@
 import { formatDistanceToNow } from 'date-fns';
+import { ACTIVE_STATUS_ORDER } from '../statusConfig';
+
+// Default display order before the sort control is touched: most-advanced
+// stage first (Management → Technical → HR) — the reverse of the pipeline's
+// natural progression order.
+const DEFAULT_STATUS_ORDER = [...ACTIVE_STATUS_ORDER].reverse();
+
+function defaultStatusRank(status) {
+  const index = DEFAULT_STATUS_ORDER.indexOf(status);
+  return index === -1 ? DEFAULT_STATUS_ORDER.length : index;
+}
 
 // Best-effort timestamp for an interview: prefer the explicit updatedAt/createdAt
 // fields (added going forward) and fall back to the legacy applicationDate string
@@ -36,6 +47,17 @@ export function sortInterviews(list, direction = 'desc') {
     (a, b) => getEffectiveTimestamp(b, 'updatedAt') - getEffectiveTimestamp(a, 'updatedAt'),
   );
   return direction === 'asc' ? items.reverse() : items;
+}
+
+// The list's initial order before anyone touches the sort toggle: grouped by
+// stage (Management → Technical → HR), newest-updated first within each
+// stage. Once the sort icon is clicked, callers switch to sortInterviews().
+export function sortByDefaultOrder(list) {
+  return [...list].sort((a, b) => {
+    const rankDiff = defaultStatusRank(a.initialStatus) - defaultStatusRank(b.initialStatus);
+    if (rankDiff !== 0) return rankDiff;
+    return getEffectiveTimestamp(b, 'updatedAt') - getEffectiveTimestamp(a, 'updatedAt');
+  });
 }
 
 export function matchesSearch(item, query) {

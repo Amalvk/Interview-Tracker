@@ -25,7 +25,7 @@ import ErrorState from './Shared/ErrorState';
 import CommonSkeleton from './Skelton';
 import { useToast } from '../context/ToastContext';
 import { ACTIVE_STATUS_ORDER, STATUS_META, isActiveStage } from '../statusConfig';
-import { matchesSearch, sortInterviews } from '../utils/interviewUtils';
+import { matchesSearch, sortByDefaultOrder, sortInterviews } from '../utils/interviewUtils';
 
 const STATUS_FILTER_OPTIONS = [
   { value: 'all', label: 'All Statuses' },
@@ -56,6 +56,7 @@ export default function ActiveInterview() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortDir, setSortDir] = useState('desc');
+  const [sortTouched, setSortTouched] = useState(false);
   const [viewMode, setViewMode] = useState(getInitialViewMode);
 
   const handleViewModeChange = (_, next) => {
@@ -82,8 +83,8 @@ export default function ActiveInterview() {
     if (statusFilter !== 'all') {
       list = list.filter((item) => item.initialStatus === statusFilter);
     }
-    return sortInterviews(list, sortDir);
-  }, [interviewList, search, statusFilter, sortDir]);
+    return sortTouched ? sortInterviews(list, sortDir) : sortByDefaultOrder(list);
+  }, [interviewList, search, statusFilter, sortDir, sortTouched]);
 
   const openAddModal = () => {
     setFormMode('add');
@@ -135,7 +136,13 @@ export default function ActiveInterview() {
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ sm: 'center' }}>
           <SearchBar value={search} onChange={setSearch} placeholder="Search company, position, HR, skill…" />
           <LabeledSelect label="Status" value={statusFilter} onChange={setStatusFilter} options={STATUS_FILTER_OPTIONS} />
-          <DateSortToggle direction={sortDir} onToggle={() => setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))} />
+          <DateSortToggle
+            direction={sortDir}
+            onToggle={() => {
+              setSortTouched(true);
+              setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+            }}
+          />
         </Stack>
       )}
 
