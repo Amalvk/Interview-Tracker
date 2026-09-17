@@ -132,7 +132,7 @@ export default function Dashboard() {
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, md: 7 }} sx={{ order: { xs: 2, md: 0 } }}>
           <Card sx={{ p: 2.5, height: '100%' }}>
-            <Typography variant="h6" sx={{ mb: 0.5 }}>
+            <Typography variant="h6" color="primary.main" sx={{ mb: 0.5 }}>
               Pipeline
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -172,7 +172,7 @@ export default function Dashboard() {
 
         <Grid size={{ xs: 12, md: 5 }} sx={{ order: { xs: 1, md: 0 } }}>
           <Card sx={{ p: 2.5, height: '100%' }}>
-            <Typography variant="h6" sx={{ mb: 0.5 }}>
+            <Typography variant="h6" color="primary.main" sx={{ mb: 0.5 }}>
               Needs Your Attention
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
