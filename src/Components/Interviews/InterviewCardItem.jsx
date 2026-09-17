@@ -16,6 +16,9 @@ import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import EmojiEventsOutlinedIcon from '@mui/icons-material/EmojiEventsOutlined';
+import HighlightOffIcon from '@mui/icons-material/HighlightOff';
+import Divider from '@mui/material/Divider';
 import StatusBadge from '../Shared/StatusBadge';
 import SkillChipsDisplay from '../Shared/SkillChipsDisplay';
 import { ACTIVE_STATUS_ORDER, STATUS_META, getStatusLabel } from '../../statusConfig';
@@ -40,6 +43,8 @@ export default function InterviewCardItem({
   onActivate,
   onDelete,
   onQuickStatusChange,
+  onMarkCracked,
+  onMarkNoResponse,
 }) {
   const [menuAnchor, setMenuAnchor] = useState(null);
   const notes = getNotesForDisplay(interview);
@@ -208,15 +213,39 @@ export default function InterviewCardItem({
               <Button size="small" startIcon={<EditOutlinedIcon fontSize="small" />} onClick={() => onEdit?.(interview)}>
                 Edit
               </Button>
-              <Button size="small" color="warning" onClick={() => onDecline?.(interview)}>
-                Decline
-              </Button>
               <Tooltip title="More">
                 <IconButton size="small" aria-label="More actions" onClick={(e) => setMenuAnchor(e.currentTarget)}>
                   <MoreHorizIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
               <Menu anchorEl={menuAnchor} open={!!menuAnchor} onClose={() => setMenuAnchor(null)}>
+                <MenuItem
+                  onClick={() => {
+                    setMenuAnchor(null);
+                    onMarkCracked?.(interview);
+                  }}
+                >
+                  <EmojiEventsOutlinedIcon fontSize="small" sx={{ mr: 1, color: 'success.main' }} />
+                  Mark as Cracked
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    setMenuAnchor(null);
+                    onMarkNoResponse?.(interview);
+                  }}
+                >
+                  <HighlightOffIcon fontSize="small" sx={{ mr: 1, color: 'warning.main' }} />
+                  No Response
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    setMenuAnchor(null);
+                    onDecline?.(interview);
+                  }}
+                >
+                  Decline
+                </MenuItem>
+                <Divider />
                 <MenuItem
                   onClick={() => {
                     setMenuAnchor(null);
@@ -231,10 +260,10 @@ export default function InterviewCardItem({
             </>
           )}
 
-          {variant === 'uncracked' && (
+          {(variant === 'uncracked' || variant === 'cracked') && (
             <>
               <Button size="small" variant="outlined" onClick={() => onActivate?.(interview)}>
-                Activate
+                {variant === 'cracked' ? 'Reopen' : 'Activate'}
               </Button>
               <Tooltip title="Delete">
                 <IconButton size="small" aria-label="Delete interview" color="error" onClick={() => onDelete?.(interview)}>

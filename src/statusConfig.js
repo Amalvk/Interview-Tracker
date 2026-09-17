@@ -13,15 +13,31 @@ export const STATUS = {
   NO_RESPONSE: 7,
 };
 
-// Order shown in selects / pipeline view (excludes the terminal "Uncracked" bucket).
+// The four in-progress pipeline stages. Shown in the Active Interviews quick-status
+// dropdown, its status filter, and the Dashboard pipeline chart. Offer Received,
+// Uncracked and No Response are terminal outcomes handled by their own sections
+// (Cracked / Uncracked) instead of living in this list.
 export const ACTIVE_STATUS_ORDER = [
   STATUS.APPLIED,
   STATUS.HR_ROUND,
   STATUS.TECHNICAL_ROUND,
   STATUS.MANAGEMENT_ROUND,
-  STATUS.NO_RESPONSE,
-  STATUS.OFFER_RECEIVED,
 ];
+
+// Statuses that land an interview in the "Uncracked" section.
+export const UNCRACKED_STATUSES = [STATUS.UNCRACKED, STATUS.NO_RESPONSE];
+
+export function isActiveStage(status) {
+  return ACTIVE_STATUS_ORDER.includes(status);
+}
+
+export function isCrackedStatus(status) {
+  return status === STATUS.OFFER_RECEIVED;
+}
+
+export function isUncrackedStatus(status) {
+  return UNCRACKED_STATUSES.includes(status);
+}
 
 export const STATUS_META = {
   [STATUS.APPLIED]: {

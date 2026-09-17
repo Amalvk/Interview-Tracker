@@ -1,13 +1,22 @@
 import { formatDistanceToNow } from 'date-fns';
-import { ACTIVE_STATUS_ORDER, STATUS } from '../statusConfig';
+import { STATUS } from '../statusConfig';
 
-// Pipeline position, not the raw stored number — STATUS.UNCRACKED (6) and
-// STATUS.NO_RESPONSE (7) sit outside the 1-4 contiguous range on purpose so
-// existing Firestore values never had to be renumbered.
+// Display order for the "Sort by Status" option — independent of the raw
+// stored number, since STATUS.UNCRACKED/NO_RESPONSE/OFFER_RECEIVED don't sit
+// in a contiguous range with the four in-progress stages.
+const STATUS_RANK = [
+  STATUS.APPLIED,
+  STATUS.HR_ROUND,
+  STATUS.TECHNICAL_ROUND,
+  STATUS.MANAGEMENT_ROUND,
+  STATUS.NO_RESPONSE,
+  STATUS.UNCRACKED,
+  STATUS.OFFER_RECEIVED,
+];
+
 function statusRank(status) {
-  const index = ACTIVE_STATUS_ORDER.indexOf(status);
-  if (index !== -1) return index;
-  return status === STATUS.UNCRACKED ? ACTIVE_STATUS_ORDER.length : ACTIVE_STATUS_ORDER.length + 1;
+  const index = STATUS_RANK.indexOf(status);
+  return index === -1 ? STATUS_RANK.length : index;
 }
 
 // Best-effort timestamp for an interview: prefer the explicit updatedAt/createdAt

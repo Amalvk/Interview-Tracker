@@ -7,8 +7,6 @@ import Stack from '@mui/material/Stack';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Tooltip from '@mui/material/Tooltip';
-import useMediaQuery from '@mui/material/useMediaQuery';
-import { useTheme } from '@mui/material/styles';
 import AddIcon from '@mui/icons-material/Add';
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 import ViewModuleOutlinedIcon from '@mui/icons-material/ViewModuleOutlined';
@@ -29,7 +27,7 @@ import EmptyState from './Shared/EmptyState';
 import ErrorState from './Shared/ErrorState';
 import CommonSkeleton from './Skelton';
 import { useToast } from '../context/ToastContext';
-import { ACTIVE_STATUS_ORDER, STATUS, STATUS_META } from '../statusConfig';
+import { ACTIVE_STATUS_ORDER, STATUS, STATUS_META, isActiveStage } from '../statusConfig';
 import { SORT_OPTIONS, matchesSearch, sortInterviews } from '../utils/interviewUtils';
 
 const STATUS_FILTER_OPTIONS = [
@@ -52,11 +50,9 @@ function getInitialViewMode() {
 export default function ActiveInterview() {
   const dispatch = useDispatch();
   const { showToast } = useToast();
-  const theme = useTheme();
-  const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
 
   const { interviewList, fetchStatus } = useSelector((state) => ({
-    interviewList: state.form.interviewList.filter((item) => item.initialStatus !== STATUS.UNCRACKED),
+    interviewList: state.form.interviewList.filter((item) => isActiveStage(item.initialStatus)),
     fetchStatus: state.form.fetchStatus,
   }));
 
@@ -84,6 +80,7 @@ export default function ActiveInterview() {
 
   const [declineTarget, setDeclineTarget] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [noResponseTarget, setNoResponseTarget] = useState(null);
 
   const filtered = useMemo(() => {
     let list = interviewList.filter((item) => matchesSearch(item, search));
@@ -137,6 +134,38 @@ export default function ActiveInterview() {
     setDeclineTarget(null);
   };
 
+  const handleMarkCracked = async (interview) => {
+    const result = await dispatch(
+      updateInterviewStatus({
+        id: interview.id,
+        newStatus: STATUS.OFFER_RECEIVED,
+        previousStatus: interview.initialStatus,
+      }),
+    );
+    if (updateInterviewStatus.fulfilled.match(result)) {
+      showToast(`"${interview.companyName}" moved to Cracked. Congrats!`, 'success');
+    } else {
+      showToast('Could not update this interview. Please try again.', 'error');
+    }
+  };
+
+  const confirmNoResponse = async () => {
+    if (!noResponseTarget) return;
+    const result = await dispatch(
+      updateInterviewStatus({
+        id: noResponseTarget.id,
+        newStatus: STATUS.NO_RESPONSE,
+        previousStatus: noResponseTarget.initialStatus,
+      }),
+    );
+    if (updateInterviewStatus.fulfilled.match(result)) {
+      showToast(`Moved "${noResponseTarget.companyName}" to Uncracked.`, 'success');
+    } else {
+      showToast('Could not update this interview. Please try again.', 'error');
+    }
+    setNoResponseTarget(null);
+  };
+
   const confirmDelete = async () => {
     if (!deleteTarget) return;
     const result = await dispatch(deleteInterviewById({ nodeId: deleteTarget.id }));
@@ -178,26 +207,24 @@ export default function ActiveInterview() {
             <LabeledSelect label="Sort" value={sortKey} onChange={setSortKey} options={SORT_OPTIONS} />
           </Stack>
 
-          {isDesktop && (
-            <ToggleButtonGroup
-              value={viewMode}
-              exclusive
-              onChange={handleViewModeChange}
-              size="small"
-              aria-label="Choose list layout"
-            >
-              <ToggleButton value="card" aria-label="Card view">
-                <Tooltip title="Card view">
-                  <ViewModuleOutlinedIcon fontSize="small" />
-                </Tooltip>
-              </ToggleButton>
-              <ToggleButton value="table" aria-label="Table view">
-                <Tooltip title="Table view">
-                  <TableRowsOutlinedIcon fontSize="small" />
-                </Tooltip>
-              </ToggleButton>
-            </ToggleButtonGroup>
-          )}
+          <ToggleButtonGroup
+            value={viewMode}
+            exclusive
+            onChange={handleViewModeChange}
+            size="small"
+            aria-label="Choose list layout"
+          >
+            <ToggleButton value="card" aria-label="Card view">
+              <Tooltip title="Card view">
+                <ViewModuleOutlinedIcon fontSize="small" />
+              </Tooltip>
+            </ToggleButton>
+            <ToggleButton value="table" aria-label="Table view">
+              <Tooltip title="Table view">
+                <TableRowsOutlinedIcon fontSize="small" />
+              </Tooltip>
+            </ToggleButton>
+          </ToggleButtonGroup>
         </Stack>
       )}
 
@@ -227,16 +254,20 @@ export default function ActiveInterview() {
         <EmptyState title="No matching interviews" description="Try adjusting your search or filters." />
       )}
 
-      {filtered.length > 0 && isDesktop && viewMode === 'table' ? (
-        <InterviewTable
-          interviews={filtered}
-          variant="active"
-          onView={openDetails}
-          onEdit={openEditModal}
-          onDecline={setDeclineTarget}
-          onDelete={setDeleteTarget}
-          onQuickStatusChange={handleQuickStatusChange}
-        />
+      {filtered.length > 0 && viewMode === 'table' ? (
+        <Box sx={{ mx: { xs: -2, sm: 0 } }}>
+          <InterviewTable
+            interviews={filtered}
+            variant="active"
+            onView={openDetails}
+            onEdit={openEditModal}
+            onDecline={setDeclineTarget}
+            onDelete={setDeleteTarget}
+            onQuickStatusChange={handleQuickStatusChange}
+            onMarkCracked={handleMarkCracked}
+            onMarkNoResponse={setNoResponseTarget}
+          />
+        </Box>
       ) : (
         <Box
           sx={{
@@ -255,6 +286,8 @@ export default function ActiveInterview() {
               onDecline={setDeclineTarget}
               onDelete={setDeleteTarget}
               onQuickStatusChange={handleQuickStatusChange}
+              onMarkCracked={handleMarkCracked}
+              onMarkNoResponse={setNoResponseTarget}
             />
           ))}
         </Box>
@@ -285,6 +318,20 @@ export default function ActiveInterview() {
             : ''
         }
         confirmLabel="Decline"
+        cancelLabel="Cancel"
+      />
+
+      <ConfirmWarningModal
+        open={!!noResponseTarget}
+        onClose={() => setNoResponseTarget(null)}
+        onConfirm={confirmNoResponse}
+        title="Mark as no response?"
+        message={
+          noResponseTarget
+            ? `Move "${noResponseTarget.companyName}" to the Uncracked list as No Response? You can reactivate it later.`
+            : ''
+        }
+        confirmLabel="No Response"
         cancelLabel="Cancel"
       />
 

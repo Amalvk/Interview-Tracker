@@ -17,7 +17,14 @@ import CommonSkeleton from '../Skelton';
 import ErrorState from '../Shared/ErrorState';
 import EmptyState from '../Shared/EmptyState';
 import { fetchInterviewsFromFirestore } from '../../Redux/formSlice';
-import { ACTIVE_STATUS_ORDER, STATUS, getStatusLabel } from '../../statusConfig';
+import {
+  ACTIVE_STATUS_ORDER,
+  STATUS,
+  getStatusLabel,
+  isActiveStage,
+  isCrackedStatus,
+  isUncrackedStatus,
+} from '../../statusConfig';
 import { formatRelativeTime } from '../../utils/interviewUtils';
 
 export default function Dashboard({ onNavigate }) {
@@ -29,15 +36,13 @@ export default function Dashboard({ onNavigate }) {
 
   const stats = useMemo(() => {
     const total = interviewList.length;
-    const uncracked = interviewList.filter((i) => i.initialStatus === STATUS.UNCRACKED).length;
-    const active = total - uncracked;
-    const offers = interviewList.filter((i) => i.initialStatus === STATUS.OFFER_RECEIVED).length;
+    const active = interviewList.filter((i) => isActiveStage(i.initialStatus)).length;
+    const cracked = interviewList.filter((i) => isCrackedStatus(i.initialStatus)).length;
+    const uncracked = interviewList.filter((i) => isUncrackedStatus(i.initialStatus)).length;
     const inProgress = interviewList.filter((i) =>
-      [STATUS.HR_ROUND, STATUS.TECHNICAL_ROUND, STATUS.MANAGEMENT_ROUND, STATUS.NO_RESPONSE].includes(
-        i.initialStatus,
-      ),
+      [STATUS.HR_ROUND, STATUS.TECHNICAL_ROUND, STATUS.MANAGEMENT_ROUND].includes(i.initialStatus),
     ).length;
-    return { total, active, uncracked, offers, inProgress };
+    return { total, active, uncracked, cracked, inProgress };
   }, [interviewList]);
 
   const pipeline = useMemo(
@@ -95,7 +100,7 @@ export default function Dashboard({ onNavigate }) {
           <StatCard label="In Progress" value={stats.inProgress} icon={<TrendingUpIcon />} accentColor="#0F766E" />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
-          <StatCard label="Offers / Selected" value={stats.offers} icon={<EmojiEventsOutlinedIcon />} accentColor="#15803D" />
+          <StatCard label="Cracked" value={stats.cracked} icon={<EmojiEventsOutlinedIcon />} accentColor="#15803D" />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
           <StatCard label="Uncracked" value={stats.uncracked} icon={<HighlightOffIcon />} accentColor="#B91C1C" />
@@ -109,7 +114,7 @@ export default function Dashboard({ onNavigate }) {
               Pipeline
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Applied → HR → Technical → Management → Offer
+              Applied → HR → Technical → Management
             </Typography>
             <Stack spacing={1.75}>
               {pipeline.map((stage) => (

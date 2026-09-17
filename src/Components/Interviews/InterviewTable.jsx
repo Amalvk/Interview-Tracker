@@ -21,12 +21,25 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import ReplayIcon from '@mui/icons-material/Replay';
+import EmojiEventsOutlinedIcon from '@mui/icons-material/EmojiEventsOutlined';
+import HighlightOffIcon from '@mui/icons-material/HighlightOff';
+import Divider from '@mui/material/Divider';
 import StatusBadge from '../Shared/StatusBadge';
 import SkillChipsDisplay from '../Shared/SkillChipsDisplay';
 import { ACTIVE_STATUS_ORDER, STATUS_META, getStatusLabel } from '../../statusConfig';
 import { formatRelativeTime } from '../../utils/interviewUtils';
 
-function RowActions({ interview, variant, onView, onEdit, onDecline, onActivate, onDelete }) {
+function RowActions({
+  interview,
+  variant,
+  onView,
+  onEdit,
+  onDecline,
+  onActivate,
+  onDelete,
+  onMarkCracked,
+  onMarkNoResponse,
+}) {
   const [menuAnchor, setMenuAnchor] = useState(null);
 
   return (
@@ -53,11 +66,30 @@ function RowActions({ interview, variant, onView, onEdit, onDecline, onActivate,
             <MenuItem
               onClick={() => {
                 setMenuAnchor(null);
+                onMarkCracked?.(interview);
+              }}
+            >
+              <EmojiEventsOutlinedIcon fontSize="small" sx={{ mr: 1, color: 'success.main' }} />
+              Mark as Cracked
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                setMenuAnchor(null);
+                onMarkNoResponse?.(interview);
+              }}
+            >
+              <HighlightOffIcon fontSize="small" sx={{ mr: 1, color: 'warning.main' }} />
+              No Response
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                setMenuAnchor(null);
                 onDecline?.(interview);
               }}
             >
               Decline
             </MenuItem>
+            <Divider />
             <MenuItem
               onClick={() => {
                 setMenuAnchor(null);
@@ -72,10 +104,14 @@ function RowActions({ interview, variant, onView, onEdit, onDecline, onActivate,
         </>
       )}
 
-      {variant === 'uncracked' && (
+      {(variant === 'uncracked' || variant === 'cracked') && (
         <>
-          <Tooltip title="Activate">
-            <IconButton size="small" aria-label={`Activate ${interview.companyName}`} onClick={() => onActivate?.(interview)}>
+          <Tooltip title={variant === 'cracked' ? 'Reopen' : 'Activate'}>
+            <IconButton
+              size="small"
+              aria-label={`${variant === 'cracked' ? 'Reopen' : 'Activate'} ${interview.companyName}`}
+              onClick={() => onActivate?.(interview)}
+            >
               <ReplayIcon fontSize="small" />
             </IconButton>
           </Tooltip>
@@ -99,6 +135,8 @@ export default function InterviewTable({
   onActivate,
   onDelete,
   onQuickStatusChange,
+  onMarkCracked,
+  onMarkNoResponse,
 }) {
   return (
     <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 3 }}>
@@ -106,7 +144,7 @@ export default function InterviewTable({
         <TableHead>
           <TableRow>
             <TableCell>Company &amp; Position</TableCell>
-            <TableCell>Status{variant === 'uncracked' ? ' / Was' : ''}</TableCell>
+            <TableCell>Status{variant !== 'active' ? ' / Was' : ''}</TableCell>
             <TableCell>HR / Contact</TableCell>
             <TableCell>Skills</TableCell>
             <TableCell>Last Updated</TableCell>
@@ -222,6 +260,8 @@ export default function InterviewTable({
                   onDecline={onDecline}
                   onActivate={onActivate}
                   onDelete={onDelete}
+                  onMarkCracked={onMarkCracked}
+                  onMarkNoResponse={onMarkNoResponse}
                 />
               </TableCell>
             </TableRow>

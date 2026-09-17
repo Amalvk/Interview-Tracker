@@ -6,15 +6,17 @@ import Sidebar, { SIDEBAR_WIDTH } from './Sidebar';
 import Header from '../Header';
 import Dashboard from '../Dashboard/Dashboard';
 import ActiveInterview from '../ActiveInterview';
+import CrackedInterview from '../CrackedInterview';
 import UncrackedInterview from '../UncrackedInterview';
 import Topics from '../Topics';
 import SettingsPage from '../Settings/SettingsPage';
 import { fetchInterviewsFromFirestore } from '../../Redux/formSlice';
-import { STATUS } from '../../statusConfig';
+import { isActiveStage, isCrackedStatus, isUncrackedStatus } from '../../statusConfig';
 
 const PAGES = {
   dashboard: Dashboard,
   active: ActiveInterview,
+  cracked: CrackedInterview,
   uncracked: UncrackedInterview,
   topics: Topics,
   settings: SettingsPage,
@@ -31,9 +33,10 @@ export default function AppShell() {
 
   const interviewList = useSelector((state) => state.form.interviewList);
   const counts = useMemo(() => {
-    const active = interviewList.filter((i) => i.initialStatus !== STATUS.UNCRACKED).length;
-    const uncracked = interviewList.filter((i) => i.initialStatus === STATUS.UNCRACKED).length;
-    return { active, uncracked };
+    const active = interviewList.filter((i) => isActiveStage(i.initialStatus)).length;
+    const cracked = interviewList.filter((i) => isCrackedStatus(i.initialStatus)).length;
+    const uncracked = interviewList.filter((i) => isUncrackedStatus(i.initialStatus)).length;
+    return { active, cracked, uncracked };
   }, [interviewList]);
 
   const handleNavigate = (page) => {
@@ -44,8 +47,8 @@ export default function AppShell() {
   const PageComponent = PAGES[activePage] || Dashboard;
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-      <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+    <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+      <Box sx={{ display: { xs: 'none', md: 'block' }, height: '100%', flexShrink: 0 }}>
         <Sidebar activePage={activePage} onNavigate={handleNavigate} counts={counts} />
       </Box>
 
@@ -69,6 +72,8 @@ export default function AppShell() {
           flexGrow: 1,
           minWidth: 0,
           width: { md: `calc(100% - ${SIDEBAR_WIDTH}px)` },
+          height: '100%',
+          overflowY: 'auto',
         }}
       >
         <Header activePage={activePage} onMenuClick={() => setMobileOpen(true)} />

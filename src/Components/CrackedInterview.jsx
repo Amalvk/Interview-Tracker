@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
-import HighlightOffIcon from '@mui/icons-material/HighlightOff';
+import EmojiEventsOutlinedIcon from '@mui/icons-material/EmojiEventsOutlined';
 import {
   deleteInterviewById,
   fetchInterviewsFromFirestore,
@@ -19,15 +19,15 @@ import EmptyState from './Shared/EmptyState';
 import ErrorState from './Shared/ErrorState';
 import CommonSkeleton from './Skelton';
 import { useToast } from '../context/ToastContext';
-import { STATUS, isUncrackedStatus } from '../statusConfig';
+import { STATUS, isCrackedStatus } from '../statusConfig';
 import { SORT_OPTIONS, matchesSearch, sortInterviews } from '../utils/interviewUtils';
 
-export default function UncrackedInterview() {
+export default function CrackedInterview() {
   const dispatch = useDispatch();
   const { showToast } = useToast();
 
   const { interviewList, fetchStatus } = useSelector((state) => ({
-    interviewList: state.form.interviewList.filter((item) => isUncrackedStatus(item.initialStatus)),
+    interviewList: state.form.interviewList.filter((item) => isCrackedStatus(item.initialStatus)),
     fetchStatus: state.form.fetchStatus,
   }));
 
@@ -66,15 +66,15 @@ export default function UncrackedInterview() {
     setDetailsOpen(false);
   };
 
-  const handleActivate = async (interview) => {
+  const handleReopen = async (interview) => {
     const restoredStatus = interview.previousStatus ?? STATUS.APPLIED;
     const result = await dispatch(
       updateInterviewStatus({ id: interview.id, newStatus: restoredStatus }),
     );
     if (updateInterviewStatus.fulfilled.match(result)) {
-      showToast(`Reactivated "${interview.companyName}".`, 'success');
+      showToast(`Reopened "${interview.companyName}".`, 'success');
     } else {
-      showToast('Could not reactivate this interview. Please try again.', 'error');
+      showToast('Could not reopen this interview. Please try again.', 'error');
     }
   };
 
@@ -95,9 +95,9 @@ export default function UncrackedInterview() {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
       <Box>
-        <Typography variant="h5">Uncracked Interviews</Typography>
+        <Typography variant="h5">Cracked Interviews</Typography>
         <Typography variant="body2" color="text.secondary">
-          Interviews that were declined or went unanswered — kept here for your application history.
+          Offers you&apos;ve received — the wins worth celebrating.
         </Typography>
       </Box>
 
@@ -123,9 +123,9 @@ export default function UncrackedInterview() {
 
       {fetchStatus !== 'loading' && fetchStatus !== 'failed' && !hasAnyInterviews && (
         <EmptyState
-          icon={<HighlightOffIcon sx={{ fontSize: 40 }} />}
-          title="No uncracked interviews"
-          description="Great! Your interview pipeline is clear."
+          icon={<EmojiEventsOutlinedIcon sx={{ fontSize: 40 }} />}
+          title="No cracked interviews yet"
+          description="Once you receive an offer, mark it as Cracked from Active Interviews and it'll show up here."
         />
       )}
 
@@ -144,9 +144,9 @@ export default function UncrackedInterview() {
           <InterviewCardItem
             key={interview.id}
             interview={interview}
-            variant="uncracked"
+            variant="cracked"
             onView={openDetails}
-            onActivate={handleActivate}
+            onActivate={handleReopen}
             onDelete={setDeleteTarget}
           />
         ))}
