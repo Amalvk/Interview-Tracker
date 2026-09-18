@@ -54,23 +54,34 @@ export default function ToDoCardItem({ todo, index, onEdit }) {
             '&:hover': { boxShadow: 4 },
           }}
         >
-          <Typography
-            sx={{
-              fontSize: { xs: '0.7rem', sm: '0.85rem' },
-              fontWeight: 700,
-              lineHeight: 1.25,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-              wordBreak: 'break-word',
-              textDecoration: isCompleted ? 'line-through' : 'none',
-              color: isCompleted ? 'text.secondary' : 'text.primary',
-            }}
-          >
-            {todo.title}
-          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 0.5 }}>
+            <Typography
+              sx={{
+                fontSize: { xs: '0.7rem', sm: '0.85rem' },
+                fontWeight: 700,
+                lineHeight: 1.25,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                wordBreak: 'break-word',
+                textDecoration: isCompleted ? 'line-through' : 'none',
+                color: isCompleted ? 'text.secondary' : 'text.primary',
+              }}
+            >
+              {todo.title}
+            </Typography>
+
+            {accent.dueMeta.label && (
+              <Tooltip title={accent.dueMeta.label}>
+                <WarningAmberIcon
+                  aria-label={accent.dueMeta.label}
+                  sx={{ fontSize: { xs: 14, sm: 16 }, color: accent.solid, flexShrink: 0 }}
+                />
+              </Tooltip>
+            )}
+          </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3 }}>
@@ -93,15 +104,6 @@ export default function ToDoCardItem({ todo, index, onEdit }) {
               />
             </Tooltip>
           </Box>
-
-          {accent.dueMeta.label && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3, mt: 0.5 }}>
-              <WarningAmberIcon sx={{ fontSize: { xs: 10, sm: 12 }, color: accent.solid }} />
-              <Typography sx={{ fontSize: { xs: '0.55rem', sm: '0.65rem' }, color: accent.solid, fontWeight: 600 }} noWrap>
-                {accent.dueMeta.label}
-              </Typography>
-            </Box>
-          )}
         </Box>
       )}
     </Draggable>

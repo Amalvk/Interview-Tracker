@@ -6,8 +6,6 @@ import Grid from '@mui/material/Grid';
 import Card from '@mui/material/Card';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
-import Divider from '@mui/material/Divider';
-import LinearProgress from '@mui/material/LinearProgress';
 import Link from '@mui/material/Link';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
@@ -17,7 +15,7 @@ import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined';
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import StatCard from './StatCard';
-import PipelineChart from './PipelineChart';
+import DonutChart from './DonutChart';
 import StatusBadge from '../Shared/StatusBadge';
 import CommonSkeleton from '../Skelton';
 import ErrorState from '../Shared/ErrorState';
@@ -89,6 +87,12 @@ export default function Dashboard() {
     [interviewList],
   );
 
+  // The donut only plots the pipeline stages above (Cracked/Uncracked have
+  // their own dedicated stat card and page) — so its center total and each
+  // slice's percentage are relative to this sum, not the overall interview
+  // count, or Uncracked would silently inflate the denominator.
+  const pipelineTotal = useMemo(() => pipeline.reduce((sum, stage) => sum + stage.count, 0), [pipeline]);
+
   const recent = useMemo(() => {
     const active = interviewList.filter((i) => isActiveStage(i.initialStatus));
     return sortByDefaultOrder(active).slice(0, 5);
@@ -149,35 +153,7 @@ export default function Dashboard() {
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
               Get a quick overview of your current interview stages.
             </Typography>
-            <Stack spacing={1.75}>
-              {pipeline.map((stage) => (
-                <Box key={stage.status}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                    <Typography variant="body2">{stage.label}</Typography>
-                    <Typography variant="body2" fontWeight={600}>
-                      {stage.count}
-                    </Typography>
-                  </Box>
-                  <LinearProgress
-                    variant="determinate"
-                    value={stats.total ? (stage.count / stats.total) * 100 : 0}
-                    sx={{
-                      height: 8,
-                      borderRadius: 4,
-                      bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.08)'),
-                      '& .MuiLinearProgress-bar': { bgcolor: stage.color },
-                    }}
-                  />
-                </Box>
-              ))}
-            </Stack>
-
-            <Divider sx={{ my: 2.5 }} />
-
-            <Typography variant="subtitle2" sx={{ mb: 1.5 }}>
-              Status breakdown
-            </Typography>
-            <PipelineChart stages={pipeline} total={stats.total} />
+            <DonutChart stages={pipeline} total={pipelineTotal} />
           </Card>
         </Grid>
 

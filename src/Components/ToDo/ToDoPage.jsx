@@ -8,7 +8,7 @@ import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import AddIcon from '@mui/icons-material/Add';
 import ChecklistIcon from '@mui/icons-material/Checklist';
-import AutorenewIcon from '@mui/icons-material/Autorenew';
+import PendingActionsOutlinedIcon from '@mui/icons-material/PendingActionsOutlined';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import StatCard from '../Dashboard/StatCard';
@@ -24,9 +24,11 @@ import { deleteTodoById, fetchTodosFromFirestore, updateTodoStatus } from '../..
 import { TODO_STATUS, getTodoStatusMeta } from '../../todoConfig';
 import { getDueMeta, groupTodosByStatus, matchesTodoSearch } from '../../utils/todoUtils';
 
+// In Progress is temporarily dropped from the board — Pending/To Do covers
+// it for now. Re-add a middle column here (and swap the KPI below) to bring
+// the three-stage flow back.
 const BOARD_COLUMNS = [
   { status: TODO_STATUS.PENDING, title: 'To Do' },
-  { status: TODO_STATUS.IN_PROGRESS, title: 'In Progress' },
   { status: TODO_STATUS.COMPLETED, title: 'Done' },
 ];
 
@@ -53,10 +55,10 @@ export default function ToDoPage() {
 
   const stats = useMemo(() => {
     const total = todoList.length;
-    const inProgress = todoList.filter((t) => t.status === TODO_STATUS.IN_PROGRESS).length;
+    const pending = todoList.filter((t) => t.status === TODO_STATUS.PENDING).length;
     const completed = todoList.filter((t) => t.status === TODO_STATUS.COMPLETED).length;
     const needsAttention = todoList.filter((t) => ['overdue', 'due-today'].includes(getDueMeta(t).kind)).length;
-    return { total, inProgress, completed, needsAttention };
+    return { total, pending, completed, needsAttention };
   }, [todoList]);
 
   const filtered = useMemo(() => todoList.filter((t) => matchesTodoSearch(t, search)), [todoList, search]);
@@ -126,7 +128,7 @@ export default function ToDoPage() {
             <StatCard label="Total Tasks" value={stats.total} icon={<ChecklistIcon />} accentColor="#16A34A" />
           </Grid>
           <Grid size={6}>
-            <StatCard label="In Progress" value={stats.inProgress} icon={<AutorenewIcon />} accentColor="#1D4ED8" />
+            <StatCard label="Pending" value={stats.pending} icon={<PendingActionsOutlinedIcon />} accentColor="#D97706" />
           </Grid>
           <Grid size={6}>
             <StatCard label="Completed" value={stats.completed} icon={<CheckCircleOutlineIcon />} accentColor="#15803D" />

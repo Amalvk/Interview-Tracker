@@ -20,14 +20,15 @@ import {
   TODO_PRIORITY,
   TODO_PRIORITY_ORDER,
   TODO_STATUS,
-  TODO_STATUS_ORDER,
   getTodoPriorityMeta,
   getTodoStatusMeta,
 } from '../../todoConfig';
 import { validateTodoForm, FIELD_LIMITS } from './validation';
 import { useToast } from '../../context/ToastContext';
 
-const STATUS_OPTIONS = TODO_STATUS_ORDER.map((value) => ({
+// In Progress is temporarily off the board (see ToDoPage's BOARD_COLUMNS) —
+// keep the picker limited to what actually has somewhere to go.
+const STATUS_OPTIONS = [TODO_STATUS.PENDING, TODO_STATUS.COMPLETED].map((value) => ({
   value,
   label: getTodoStatusMeta(value).label,
 }));
