@@ -2,11 +2,9 @@ import { Draggable } from '@hello-pangea/dnd';
 import { useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { TODO_STATUS, TODO_URGENCY_META, getTodoPriorityMeta } from '../../todoConfig';
 import { formatDueDate, getDueMeta } from '../../utils/todoUtils';
 
@@ -18,7 +16,7 @@ function getAccent(todo, isDark) {
   return { ...palette, solid: urgency.solid, dueMeta };
 }
 
-export default function ToDoCardItem({ todo, index, onEdit, onDelete }) {
+export default function ToDoCardItem({ todo, index, onEdit }) {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const accent = getAccent(todo, isDark);
@@ -47,7 +45,7 @@ export default function ToDoCardItem({ todo, index, onEdit, onDelete }) {
           sx={{
             p: { xs: 1, sm: 1.5 },
             mb: { xs: 0.75, sm: 1 },
-            borderRadius: 2,
+            borderRadius: 1,
             cursor: 'pointer',
             bgcolor: 'background.paper',
             borderLeft: `3px solid ${accent.solid || priorityPalette.color}`,
@@ -56,38 +54,23 @@ export default function ToDoCardItem({ todo, index, onEdit, onDelete }) {
             '&:hover': { boxShadow: 4 },
           }}
         >
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 0.5 }}>
-            <Typography
-              sx={{
-                fontSize: { xs: '0.7rem', sm: '0.85rem' },
-                fontWeight: 700,
-                lineHeight: 1.25,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical',
-                wordBreak: 'break-word',
-                textDecoration: isCompleted ? 'line-through' : 'none',
-                color: isCompleted ? 'text.secondary' : 'text.primary',
-              }}
-            >
-              {todo.title}
-            </Typography>
-            <Tooltip title="Delete">
-              <IconButton
-                size="small"
-                aria-label="Delete task"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete?.(todo);
-                }}
-                sx={{ p: 0.25, flexShrink: 0 }}
-              >
-                <DeleteOutlineIcon sx={{ fontSize: { xs: 14, sm: 16 } }} />
-              </IconButton>
-            </Tooltip>
-          </Box>
+          <Typography
+            sx={{
+              fontSize: { xs: '0.7rem', sm: '0.85rem' },
+              fontWeight: 700,
+              lineHeight: 1.25,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              wordBreak: 'break-word',
+              textDecoration: isCompleted ? 'line-through' : 'none',
+              color: isCompleted ? 'text.secondary' : 'text.primary',
+            }}
+          >
+            {todo.title}
+          </Typography>
 
           <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3 }}>

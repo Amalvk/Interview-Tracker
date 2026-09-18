@@ -99,5 +99,5 @@ export function matchesTodoSearch(todo, query) {
 
 export function formatDueDate(dueDate) {
   const d = parseDueDate(dueDate);
-  return d ? format(d, 'MMM d, yyyy') : 'No due date';
+  return d ? format(d, 'MMM d') : 'No due date';
 }

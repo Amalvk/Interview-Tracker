@@ -12,6 +12,7 @@ import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import CircularProgress from '@mui/material/CircularProgress';
 import CloseIcon from '@mui/icons-material/Close';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import LabeledSelect from '../Shared/LabeledSelect';
 import ConfirmWarningModal from '../ConfirmWarningModal';
 import { saveTodoToFirestore, updateTodoInFirestore } from '../../Redux/todoSlice';
@@ -57,7 +58,7 @@ function buildInitialForm(todo) {
   return next;
 }
 
-export default function ToDoFormModal({ open, mode, todo, onClose }) {
+export default function ToDoFormModal({ open, mode, todo, onClose, onDeleteRequest }) {
   const dispatch = useDispatch();
   const { showToast } = useToast();
   const theme = useTheme();
@@ -214,18 +215,33 @@ export default function ToDoFormModal({ open, mode, todo, onClose }) {
             />
           </Box>
         </DialogContent>
-        <DialogActions sx={{ px: 3, py: 2, gap: 1 }}>
-          <Button onClick={requestClose} disabled={submitting}>
-            Cancel
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handleSubmit}
-            disabled={submitting}
-            startIcon={submitting ? <CircularProgress size={16} color="inherit" /> : null}
-          >
-            {submitting ? 'Saving…' : 'Save Task'}
-          </Button>
+        <DialogActions sx={{ px: 3, py: 2, gap: 1, justifyContent: isEdit ? 'space-between' : 'flex-end' }}>
+          {isEdit && (
+            <IconButton
+              aria-label="Delete task"
+              color="error"
+              disabled={submitting}
+              onClick={() => {
+                onClose();
+                onDeleteRequest?.(todo);
+              }}
+            >
+              <DeleteOutlineIcon fontSize="small" />
+            </IconButton>
+          )}
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button onClick={requestClose} disabled={submitting}>
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handleSubmit}
+              disabled={submitting}
+              startIcon={submitting ? <CircularProgress size={16} color="inherit" /> : null}
+            >
+              {submitting ? 'Saving…' : 'Save Task'}
+            </Button>
+          </Box>
         </DialogActions>
       </Dialog>
 

@@ -182,14 +182,19 @@ export default function ToDoPage() {
                 isFirst={index === 0}
                 todos={columns[column.status] || []}
                 onEdit={openEditModal}
-                onDelete={setDeleteTarget}
               />
             ))}
           </Box>
         </DragDropContext>
       )}
 
-      <ToDoFormModal open={formOpen} mode={formMode} todo={selectedTodo} onClose={() => setFormOpen(false)} />
+      <ToDoFormModal
+        open={formOpen}
+        mode={formMode}
+        todo={selectedTodo}
+        onClose={() => setFormOpen(false)}
+        onDeleteRequest={setDeleteTarget}
+      />
 
       <ConfirmWarningModal
         open={!!deleteTarget}

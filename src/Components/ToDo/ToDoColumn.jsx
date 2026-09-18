@@ -4,7 +4,7 @@ import Typography from '@mui/material/Typography';
 import Chip from '@mui/material/Chip';
 import ToDoCardItem from './ToDoCardItem';
 
-export default function ToDoColumn({ status, title, accentColor, todos, onEdit, onDelete, isFirst }) {
+export default function ToDoColumn({ status, title, accentColor, todos, onEdit, isFirst }) {
   return (
     <Box
       sx={{
@@ -72,7 +72,7 @@ export default function ToDoColumn({ status, title, accentColor, todos, onEdit, 
             }}
           >
             {todos.map((todo, index) => (
-              <ToDoCardItem key={todo.id} todo={todo} index={index} onEdit={onEdit} onDelete={onDelete} />
+              <ToDoCardItem key={todo.id} todo={todo} index={index} onEdit={onEdit} />
             ))}
             {provided.placeholder}
             {todos.length === 0 && (
