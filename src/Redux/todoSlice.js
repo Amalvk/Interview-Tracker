@@ -48,14 +48,14 @@ export const updateTodoInFirestore = createAsyncThunk(
 
 export const updateTodoStatus = createAsyncThunk(
   'todo/updateTodoStatus',
-  async ({ id, status }, { rejectWithValue }) => {
+  async ({ id, status, previousStatus }, { rejectWithValue }) => {
     try {
       const docRef = doc(db, 'todos', id);
       const updatedAt = new Date().toISOString();
       await updateDoc(docRef, { status, updatedAt });
-      return { id, status, updatedAt };
+      return { id, status, updatedAt, previousStatus };
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue({ message: error.message, id, previousStatus });
     }
   }
 );
@@ -113,16 +113,24 @@ const todoSlice = createSlice({
         state.error = action.payload;
       })
 
-      .addCase(updateTodoStatus.fulfilled, (state, action) => {
-        const { id, status, updatedAt } = action.payload;
+      // Applied on `pending` (not `fulfilled`) so the board reflects the
+      // drop immediately instead of snapping the card back to its source
+      // column for the duration of the Firestore round-trip.
+      .addCase(updateTodoStatus.pending, (state, action) => {
+        const { id, status } = action.meta.arg;
         const existing = state.todoList.find((t) => t.id === id);
-        if (existing) {
-          existing.status = status;
-          existing.updatedAt = updatedAt;
-        }
+        if (existing) existing.status = status;
+      })
+      .addCase(updateTodoStatus.fulfilled, (state, action) => {
+        const { id, updatedAt } = action.payload;
+        const existing = state.todoList.find((t) => t.id === id);
+        if (existing) existing.updatedAt = updatedAt;
       })
       .addCase(updateTodoStatus.rejected, (state, action) => {
-        state.error = action.payload;
+        state.error = action.payload?.message;
+        const { id, previousStatus } = action.payload || {};
+        const existing = id && state.todoList.find((t) => t.id === id);
+        if (existing && previousStatus !== undefined) existing.status = previousStatus;
       })
 
       .addCase(deleteTodoById.fulfilled, (state, action) => {

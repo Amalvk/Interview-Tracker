@@ -85,7 +85,9 @@ export default function ToDoPage() {
     const todo = todoList.find((t) => t.id === draggableId);
     if (!todo) return;
 
-    const resultAction = await dispatch(updateTodoStatus({ id: todo.id, status: newStatus }));
+    const resultAction = await dispatch(
+      updateTodoStatus({ id: todo.id, status: newStatus, previousStatus: todo.status }),
+    );
     if (updateTodoStatus.fulfilled.match(resultAction)) {
       showToast(`Moved "${todo.title}" to ${getTodoStatusMeta(newStatus).label}.`, 'success');
     } else {
