@@ -9,10 +9,12 @@ import Dashboard from '../Dashboard/Dashboard';
 import ActiveInterview from '../ActiveInterview';
 import CrackedInterview from '../CrackedInterview';
 import UncrackedInterview from '../UncrackedInterview';
-import Topics from '../Topics';
+import ToDoPage from '../ToDo/ToDoPage';
 import SettingsPage from '../Settings/SettingsPage';
 import { fetchInterviewsFromFirestore } from '../../Redux/formSlice';
+import { fetchTodosFromFirestore } from '../../Redux/todoSlice';
 import { isActiveStage, isCrackedStatus, isUncrackedStatus } from '../../statusConfig';
+import { getDueMeta } from '../../utils/todoUtils';
 
 export default function AppShell() {
   const dispatch = useDispatch();
@@ -22,6 +24,7 @@ export default function AppShell() {
 
   useEffect(() => {
     dispatch(fetchInterviewsFromFirestore());
+    dispatch(fetchTodosFromFirestore());
   }, [dispatch]);
 
   useEffect(() => {
@@ -30,12 +33,14 @@ export default function AppShell() {
   }, [pathname]);
 
   const interviewList = useSelector((state) => state.form.interviewList);
+  const todoList = useSelector((state) => state.todo.todoList);
   const counts = useMemo(() => {
     const active = interviewList.filter((i) => isActiveStage(i.initialStatus)).length;
     const cracked = interviewList.filter((i) => isCrackedStatus(i.initialStatus)).length;
     const uncracked = interviewList.filter((i) => isUncrackedStatus(i.initialStatus)).length;
-    return { active, cracked, uncracked };
-  }, [interviewList]);
+    const todo = todoList.filter((t) => ['overdue', 'due-today'].includes(getDueMeta(t).kind)).length;
+    return { active, cracked, uncracked, todo };
+  }, [interviewList, todoList]);
 
   return (
     <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
@@ -70,7 +75,7 @@ export default function AppShell() {
             <Route path="/active" element={<ActiveInterview />} />
             <Route path="/cracked" element={<CrackedInterview />} />
             <Route path="/uncracked" element={<UncrackedInterview />} />
-            <Route path="/topics" element={<Topics />} />
+            <Route path="/todo" element={<ToDoPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

@@ -8,11 +8,14 @@ import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import Divider from '@mui/material/Divider';
 import LinearProgress from '@mui/material/LinearProgress';
+import Link from '@mui/material/Link';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import EmojiEventsOutlinedIcon from '@mui/icons-material/EmojiEventsOutlined';
 import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined';
+import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import StatCard from './StatCard';
 import PipelineChart from './PipelineChart';
 import StatusBadge from '../Shared/StatusBadge';
@@ -31,6 +34,14 @@ import {
   isCrackedStatus,
 } from '../../statusConfig';
 import { formatRelativeTime, sortByDefaultOrder } from '../../utils/interviewUtils';
+
+const PREP_RESOURCES = [
+  {
+    label: 'Interview Preparation Notes',
+    description: 'Personal drive doc with interview prep material and references.',
+    url: 'https://docs.google.com/document/d/1W2u_jC-pxRqSqqO1wspzSiZm6sSuw5k3KoEoiO5NhLQ/edit?tab=t.810tvquqov17',
+  },
+];
 
 export default function Dashboard() {
   const dispatch = useDispatch();
@@ -226,6 +237,47 @@ export default function Dashboard() {
           </Card>
         </Grid>
       </Grid>
+
+      <Card sx={{ p: 2.5 }}>
+        <Typography variant="h6" color="primary.main" sx={{ mb: 0.5 }}>
+          Preparation Resources
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Quick reference material to help you prepare for upcoming interviews.
+        </Typography>
+        <Stack spacing={1.5}>
+          {PREP_RESOURCES.map((resource) => (
+            <Link
+              key={resource.url}
+              href={resource.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              underline="none"
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1.5,
+                p: 1.5,
+                borderRadius: 1.5,
+                border: (theme) => `1px solid ${theme.palette.divider}`,
+                color: 'text.primary',
+                '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.main' },
+              }}
+            >
+              <DescriptionOutlinedIcon color="primary" />
+              <Box sx={{ minWidth: 0, flexGrow: 1 }}>
+                <Typography variant="body2" fontWeight={600} noWrap>
+                  {resource.label}
+                </Typography>
+                <Typography variant="caption" color="text.secondary" noWrap display="block">
+                  {resource.description}
+                </Typography>
+              </Box>
+              <OpenInNewIcon fontSize="small" color="action" />
+            </Link>
+          ))}
+        </Stack>
+      </Card>
 
       <InterviewDetailsDrawer
         open={detailsOpen}

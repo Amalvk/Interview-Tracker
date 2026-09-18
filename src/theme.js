@@ -45,9 +45,6 @@ export function getTheme(mode) {
       h6: { fontWeight: 600, fontSize: '1.05rem' },
       button: { fontWeight: 600, textTransform: 'none' },
     },
-    shadows: Object.assign([], {
-      length: 25,
-    }),
     components: {
       MuiCssBaseline: {
         styleOverrides: {

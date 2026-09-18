@@ -2,7 +2,7 @@ import SpaceDashboardOutlinedIcon from '@mui/icons-material/SpaceDashboardOutlin
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 import EmojiEventsOutlinedIcon from '@mui/icons-material/EmojiEventsOutlined';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
-import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined';
+import ChecklistIcon from '@mui/icons-material/Checklist';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 
 export const NAV_ITEMS = [
@@ -10,6 +10,6 @@ export const NAV_ITEMS = [
   { key: 'active', label: 'Active Interviews', icon: WorkOutlineIcon, path: '/active' },
   { key: 'cracked', label: 'Cracked', icon: EmojiEventsOutlinedIcon, path: '/cracked' },
   { key: 'uncracked', label: 'Uncracked', icon: HighlightOffIcon, path: '/uncracked' },
-  { key: 'topics', label: 'Topics', icon: MenuBookOutlinedIcon, path: '/topics' },
+  { key: 'todo', label: 'To-Do', icon: ChecklistIcon, path: '/todo' },
   { key: 'settings', label: 'Settings', icon: SettingsOutlinedIcon, path: '/settings' },
 ];
