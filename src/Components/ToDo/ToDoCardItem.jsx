@@ -5,7 +5,7 @@ import Typography from '@mui/material/Typography';
 import Tooltip from '@mui/material/Tooltip';
 import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
-import { TODO_STATUS, TODO_URGENCY_META, getTodoPriorityMeta } from '../../todoConfig';
+import { TODO_URGENCY_META, getTodoPriorityMeta } from '../../todoConfig';
 import { formatDueDate, getDueMeta } from '../../utils/todoUtils';
 
 function getAccent(todo, isDark) {
@@ -20,7 +20,6 @@ export default function ToDoCardItem({ todo, index, onEdit }) {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const accent = getAccent(todo, isDark);
-  const isCompleted = todo.status === TODO_STATUS.COMPLETED;
   const isUrgent = accent.dueMeta.kind === 'overdue' || accent.dueMeta.kind === 'due-today';
   const priorityMeta = getTodoPriorityMeta(todo.priority);
   const priorityPalette = priorityMeta[isDark ? 'dark' : 'light'];
@@ -60,14 +59,14 @@ export default function ToDoCardItem({ todo, index, onEdit }) {
                 fontSize: { xs: '0.7rem', sm: '0.85rem' },
                 fontWeight: 700,
                 lineHeight: 1.25,
+                minHeight: '2.5em',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 display: '-webkit-box',
                 WebkitLineClamp: 2,
                 WebkitBoxOrient: 'vertical',
                 wordBreak: 'break-word',
-                textDecoration: isCompleted ? 'line-through' : 'none',
-                color: isCompleted ? 'text.secondary' : 'text.primary',
+                color: 'text.primary',
               }}
             >
               {todo.title}
