@@ -4,7 +4,7 @@ import Typography from '@mui/material/Typography';
 import Chip from '@mui/material/Chip';
 import ToDoCardItem from './ToDoCardItem';
 
-export default function ToDoColumn({ status, title, accentColor, todos, onEdit, onDelete }) {
+export default function ToDoColumn({ status, title, accentColor, todos, onEdit, onDelete, isFirst }) {
   return (
     <Box
       sx={{
@@ -12,9 +12,12 @@ export default function ToDoColumn({ status, title, accentColor, todos, onEdit, 
         minWidth: 0,
         display: 'flex',
         flexDirection: 'column',
-        bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(15,23,42,0.03)'),
-        borderRadius: 2,
-        border: (theme) => `1px solid ${theme.palette.divider}`,
+        borderLeft: isFirst
+          ? 'none'
+          : (theme) =>
+              `2px dotted ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.22)' : 'rgba(15,23,42,0.2)'}`,
+        pl: isFirst ? 0 : { xs: 1, sm: 1.5 },
+        pr: { xs: 1, sm: 1.5 },
       }}
     >
       <Box
@@ -23,18 +26,11 @@ export default function ToDoColumn({ status, title, accentColor, todos, onEdit, 
           alignItems: 'center',
           justifyContent: 'space-between',
           gap: 0.5,
-          px: { xs: 0.75, sm: 1.5 },
-          py: { xs: 0.75, sm: 1 },
-          borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
-          borderTop: `3px solid ${accentColor}`,
-          borderTopLeftRadius: 8,
-          borderTopRightRadius: 8,
+          px: { xs: 0.25, sm: 0.5 },
+          pb: { xs: 0.5, sm: 0.75 },
         }}
       >
-        <Typography
-          sx={{ fontSize: { xs: '0.7rem', sm: '0.9rem' }, fontWeight: 700 }}
-          noWrap
-        >
+        <Typography sx={{ fontSize: { xs: '0.7rem', sm: '0.9rem' }, fontWeight: 700 }} noWrap>
           {title}
         </Typography>
         <Chip
@@ -48,6 +44,16 @@ export default function ToDoColumn({ status, title, accentColor, todos, onEdit, 
         />
       </Box>
 
+      <Box
+        sx={{
+          height: '2px',
+          borderRadius: 1,
+          bgcolor: accentColor,
+          mx: { xs: 0.5, sm: 1 },
+          mb: { xs: 0.5, sm: 0.75 },
+        }}
+      />
+
       <Droppable droppableId={status}>
         {(provided, snapshot) => (
           <Box
@@ -56,7 +62,9 @@ export default function ToDoColumn({ status, title, accentColor, todos, onEdit, 
             sx={{
               flex: 1,
               minHeight: 80,
-              p: { xs: 0.5, sm: 1 },
+              px: { xs: 0.25, sm: 0.5 },
+              pt: { xs: 0.5, sm: 0.75 },
+              borderRadius: 1,
               bgcolor: snapshot.isDraggingOver
                 ? (theme) => (theme.palette.mode === 'dark' ? 'rgba(74,222,128,0.06)' : 'rgba(22,163,74,0.05)')
                 : 'transparent',

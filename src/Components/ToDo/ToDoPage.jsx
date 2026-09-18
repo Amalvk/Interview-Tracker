@@ -8,7 +8,6 @@ import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import AddIcon from '@mui/icons-material/Add';
 import ChecklistIcon from '@mui/icons-material/Checklist';
-import PendingActionsOutlinedIcon from '@mui/icons-material/PendingActionsOutlined';
 import AutorenewIcon from '@mui/icons-material/Autorenew';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
@@ -54,11 +53,10 @@ export default function ToDoPage() {
 
   const stats = useMemo(() => {
     const total = todoList.length;
-    const pending = todoList.filter((t) => t.status === TODO_STATUS.PENDING).length;
     const inProgress = todoList.filter((t) => t.status === TODO_STATUS.IN_PROGRESS).length;
     const completed = todoList.filter((t) => t.status === TODO_STATUS.COMPLETED).length;
     const needsAttention = todoList.filter((t) => ['overdue', 'due-today'].includes(getDueMeta(t).kind)).length;
-    return { total, pending, inProgress, completed, needsAttention };
+    return { total, inProgress, completed, needsAttention };
   }, [todoList]);
 
   const filtered = useMemo(() => todoList.filter((t) => matchesTodoSearch(t, search)), [todoList, search]);
@@ -124,19 +122,16 @@ export default function ToDoPage() {
 
       {hasAnyTodos && (
         <Grid container spacing={2}>
-          <Grid size={{ xs: 6, sm: 6, md: 4, lg: 2.4 }}>
+          <Grid size={6}>
             <StatCard label="Total Tasks" value={stats.total} icon={<ChecklistIcon />} accentColor="#16A34A" />
           </Grid>
-          <Grid size={{ xs: 6, sm: 6, md: 4, lg: 2.4 }}>
-            <StatCard label="Pending" value={stats.pending} icon={<PendingActionsOutlinedIcon />} accentColor="#D97706" />
-          </Grid>
-          <Grid size={{ xs: 6, sm: 6, md: 4, lg: 2.4 }}>
+          <Grid size={6}>
             <StatCard label="In Progress" value={stats.inProgress} icon={<AutorenewIcon />} accentColor="#1D4ED8" />
           </Grid>
-          <Grid size={{ xs: 6, sm: 6, md: 4, lg: 2.4 }}>
+          <Grid size={6}>
             <StatCard label="Completed" value={stats.completed} icon={<CheckCircleOutlineIcon />} accentColor="#15803D" />
           </Grid>
-          <Grid size={{ xs: 6, sm: 6, md: 4, lg: 2.4 }}>
+          <Grid size={6}>
             <StatCard label="Needs Attention" value={stats.needsAttention} icon={<WarningAmberIcon />} accentColor="#DC2626" />
           </Grid>
         </Grid>
@@ -177,13 +172,14 @@ export default function ToDoPage() {
 
       {hasAnyTodos && (
         <DragDropContext onDragEnd={handleDragEnd}>
-          <Box sx={{ display: 'flex', gap: { xs: 0.75, sm: 1.5, md: 2 }, alignItems: 'stretch' }}>
-            {BOARD_COLUMNS.map((column) => (
+          <Box sx={{ display: 'flex', alignItems: 'stretch' }}>
+            {BOARD_COLUMNS.map((column, index) => (
               <ToDoColumn
                 key={column.status}
                 status={column.status}
                 title={column.title}
                 accentColor={getTodoStatusMeta(column.status).solid}
+                isFirst={index === 0}
                 todos={columns[column.status] || []}
                 onEdit={openEditModal}
                 onDelete={setDeleteTarget}
