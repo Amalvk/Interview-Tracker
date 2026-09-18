@@ -97,20 +97,18 @@ export default function ToDoCardItem({ todo, index, onEdit, onDelete }) {
               </Typography>
             </Box>
 
-            <Box
-              sx={{
-                fontSize: { xs: '0.55rem', sm: '0.65rem' },
-                fontWeight: 700,
-                lineHeight: 1,
-                px: 0.6,
-                py: 0.3,
-                borderRadius: 0.75,
-                bgcolor: priorityPalette.bg,
-                color: priorityPalette.color,
-              }}
-            >
-              {priorityMeta.label}
-            </Box>
+            <Tooltip title={`${priorityMeta.label} priority`}>
+              <Box
+                aria-label={`${priorityMeta.label} priority`}
+                sx={{
+                  width: { xs: 7, sm: 8 },
+                  height: { xs: 7, sm: 8 },
+                  borderRadius: '50%',
+                  bgcolor: priorityMeta.solid,
+                  flexShrink: 0,
+                }}
+              />
+            </Tooltip>
           </Box>
 
           {accent.dueMeta.label && (
