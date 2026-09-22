@@ -9,7 +9,6 @@ import Stack from '@mui/material/Stack';
 import Link from '@mui/material/Link';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import EmojiEventsOutlinedIcon from '@mui/icons-material/EmojiEventsOutlined';
 import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined';
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
@@ -70,10 +69,7 @@ export default function Dashboard() {
     const active = interviewList.filter((i) => isActiveStage(i.initialStatus)).length;
     const cracked = interviewList.filter((i) => isCrackedStatus(i.initialStatus)).length;
     const noResponse = interviewList.filter((i) => i.initialStatus === STATUS.NO_RESPONSE).length;
-    const inProgress = interviewList.filter((i) =>
-      [STATUS.HR_ROUND, STATUS.TECHNICAL_ROUND, STATUS.MANAGEMENT_ROUND].includes(i.initialStatus),
-    ).length;
-    return { total, active, cracked, noResponse, inProgress };
+    return { total, active, cracked, noResponse };
   }, [interviewList]);
 
   const pipeline = useMemo(
@@ -127,19 +123,16 @@ export default function Dashboard() {
       </Box>
 
       <Grid container spacing={2}>
-        <Grid size={{ xs: 6, sm: 6, md: 4, lg: 2.4 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <StatCard label="Total Interviews" value={stats.total} icon={<Inventory2OutlinedIcon />} accentColor="#16A34A" />
         </Grid>
-        <Grid size={{ xs: 6, sm: 6, md: 4, lg: 2.4 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <StatCard label="Active" value={stats.active} icon={<WorkOutlineIcon />} accentColor="#059669" />
         </Grid>
-        <Grid size={{ xs: 6, sm: 6, md: 4, lg: 2.4 }}>
-          <StatCard label="In Progress" value={stats.inProgress} icon={<TrendingUpIcon />} accentColor="#0F766E" />
-        </Grid>
-        <Grid size={{ xs: 6, sm: 6, md: 4, lg: 2.4 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <StatCard label="Cracked" value={stats.cracked} icon={<EmojiEventsOutlinedIcon />} accentColor="#15803D" />
         </Grid>
-        <Grid size={{ xs: 6, sm: 6, md: 4, lg: 2.4 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <StatCard label="No Response" value={stats.noResponse} icon={<ScheduleOutlinedIcon />} accentColor="#CA8A04" />
         </Grid>
       </Grid>

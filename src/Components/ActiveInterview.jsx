@@ -129,8 +129,14 @@ export default function ActiveInterview() {
 
       {hasAnyInterviews && (
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ sm: 'center' }}>
-          <SearchBar value={search} onChange={setSearch} placeholder="Search company, position, HR, skill…" />
-          <LabeledSelect label="Status" value={statusFilter} onChange={setStatusFilter} options={STATUS_FILTER_OPTIONS} />
+          <SearchBar value={search} onChange={setSearch} placeholder="Search company, position, HR, number, skill…" />
+          <LabeledSelect
+            label="Status"
+            hideLabel
+            value={statusFilter}
+            onChange={setStatusFilter}
+            options={STATUS_FILTER_OPTIONS}
+          />
           <DateSortToggle
             direction={sortDir}
             onToggle={() => {

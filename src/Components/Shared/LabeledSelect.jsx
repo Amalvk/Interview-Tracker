@@ -3,16 +3,26 @@ import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 
-export default function LabeledSelect({ label, value, onChange, options, sx, minWidth = 160, getOptionColor }) {
+export default function LabeledSelect({
+  label,
+  value,
+  onChange,
+  options,
+  sx,
+  minWidth = 160,
+  getOptionColor,
+  hideLabel = false,
+}) {
   const labelId = `${label.replace(/\s+/g, '-').toLowerCase()}-select-label`;
   const selectedColor = getOptionColor?.(value);
 
   return (
     <FormControl size="small" sx={{ minWidth, ...sx }}>
-      <InputLabel id={labelId}>{label}</InputLabel>
+      {!hideLabel && <InputLabel id={labelId}>{label}</InputLabel>}
       <Select
         labelId={labelId}
-        label={label}
+        label={hideLabel ? undefined : label}
+        aria-label={hideLabel ? label : undefined}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         sx={

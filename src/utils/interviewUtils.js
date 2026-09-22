@@ -72,6 +72,7 @@ export function matchesSearch(item, query) {
     item.position,
     item.contactName,
     item.contactEmail,
+    item.contactNumber,
     item.skills,
     notesText,
   ]
