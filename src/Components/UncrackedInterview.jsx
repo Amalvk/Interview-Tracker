@@ -15,13 +15,11 @@ import DateSortToggle from './Shared/DateSortToggle';
 import EmptyState from './Shared/EmptyState';
 import ErrorState from './Shared/ErrorState';
 import CommonSkeleton from './Skelton';
-import { useToast } from '../context/ToastContext';
 import { isUncrackedStatus } from '../statusConfig';
 import { matchesSearch, sortInterviews } from '../utils/interviewUtils';
 
 export default function UncrackedInterview() {
   const dispatch = useDispatch();
-  const { showToast } = useToast();
 
   const { interviewList, fetchStatus } = useSelector((state) => ({
     interviewList: state.form.interviewList.filter((item) => isUncrackedStatus(item.initialStatus)),
@@ -67,10 +65,7 @@ export default function UncrackedInterview() {
     if (!deleteTarget) return;
     const result = await dispatch(deleteInterviewById({ nodeId: deleteTarget.id }));
     if (deleteInterviewById.fulfilled.match(result)) {
-      showToast(`Deleted "${deleteTarget.companyName}".`, 'success');
       dispatch(fetchInterviewsFromFirestore());
-    } else {
-      showToast('Could not delete this interview. Please try again.', 'error');
     }
     setDeleteTarget(null);
   };

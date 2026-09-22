@@ -23,7 +23,6 @@ import DateSortToggle from './Shared/DateSortToggle';
 import EmptyState from './Shared/EmptyState';
 import ErrorState from './Shared/ErrorState';
 import CommonSkeleton from './Skelton';
-import { useToast } from '../context/ToastContext';
 import { ACTIVE_STATUS_ORDER, STATUS_META, isActiveStage } from '../statusConfig';
 import { matchesSearch, sortByDefaultOrder, sortInterviews } from '../utils/interviewUtils';
 
@@ -46,7 +45,6 @@ function getInitialViewMode() {
 
 export default function ActiveInterview() {
   const dispatch = useDispatch();
-  const { showToast } = useToast();
 
   const { interviewList, fetchStatus } = useSelector((state) => ({
     interviewList: state.form.interviewList.filter((item) => isActiveStage(item.initialStatus)),
@@ -108,10 +106,7 @@ export default function ActiveInterview() {
     if (!deleteTarget) return;
     const result = await dispatch(deleteInterviewById({ nodeId: deleteTarget.id }));
     if (deleteInterviewById.fulfilled.match(result)) {
-      showToast(`Deleted "${deleteTarget.companyName}".`, 'success');
       dispatch(fetchInterviewsFromFirestore());
-    } else {
-      showToast('Could not delete this interview. Please try again.', 'error');
     }
     setDeleteTarget(null);
   };

@@ -24,7 +24,6 @@ import {
   getTodoStatusMeta,
 } from '../../todoConfig';
 import { validateTodoForm, FIELD_LIMITS } from './validation';
-import { useToast } from '../../context/ToastContext';
 
 // In Progress is temporarily off the board (see ToDoPage's BOARD_COLUMNS) —
 // keep the picker limited to what actually has somewhere to go.
@@ -61,7 +60,6 @@ function buildInitialForm(todo) {
 
 export default function ToDoFormModal({ open, mode, todo, onClose, onDeleteRequest }) {
   const dispatch = useDispatch();
-  const { showToast } = useToast();
   const theme = useTheme();
   const isEdit = mode === 'edit';
 
@@ -134,13 +132,10 @@ export default function ToDoFormModal({ open, mode, todo, onClose, onDeleteReque
         saveTodoToFirestore.fulfilled.match(resultAction) ||
         updateTodoInFirestore.fulfilled.match(resultAction)
       ) {
-        showToast(isEdit ? 'Task updated successfully.' : 'Task added successfully.', 'success');
         onClose();
-      } else {
-        showToast('Something went wrong while saving. Please try again.', 'error');
       }
     } catch {
-      showToast('Something went wrong while saving. Please try again.', 'error');
+      // saving failed; leave the form open so the user can retry
     } finally {
       setSubmitting(false);
     }

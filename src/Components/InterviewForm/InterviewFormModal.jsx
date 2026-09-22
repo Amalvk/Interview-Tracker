@@ -21,7 +21,6 @@ import ConfirmWarningModal from '../ConfirmWarningModal';
 import { saveFormToFirestore, updateInterviewForm } from '../../Redux/formSlice';
 import { ALL_STATUS_ORDER, STATUS, STATUS_META } from '../../statusConfig';
 import { validateInterviewForm, FIELD_LIMITS } from './validation';
-import { useToast } from '../../context/ToastContext';
 
 const STATUS_OPTIONS = ALL_STATUS_ORDER.map((value) => ({
   value,
@@ -76,7 +75,6 @@ function formatCommentDate(iso) {
 
 export default function InterviewFormModal({ open, mode, interview, onClose }) {
   const dispatch = useDispatch();
-  const { showToast } = useToast();
   const theme = useTheme();
   const isEdit = mode === 'edit';
 
@@ -177,13 +175,10 @@ export default function InterviewFormModal({ open, mode, interview, onClose }) {
         saveFormToFirestore.fulfilled.match(resultAction) ||
         updateInterviewForm.fulfilled.match(resultAction)
       ) {
-        showToast(isEdit ? 'Interview updated successfully.' : 'Interview added successfully.', 'success');
         onClose();
-      } else {
-        showToast('Something went wrong while saving. Please try again.', 'error');
       }
     } catch {
-      showToast('Something went wrong while saving. Please try again.', 'error');
+      // saving failed; leave the form open so the user can retry
     } finally {
       setSubmitting(false);
     }

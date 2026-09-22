@@ -19,7 +19,6 @@ import SearchBar from '../Shared/SearchBar';
 import EmptyState from '../Shared/EmptyState';
 import ErrorState from '../Shared/ErrorState';
 import CommonSkeleton from '../Skelton';
-import { useToast } from '../../context/ToastContext';
 import { deleteTodoById, fetchTodosFromFirestore, updateTodoStatus } from '../../Redux/todoSlice';
 import { TODO_STATUS, getTodoStatusMeta } from '../../todoConfig';
 import { getDueMeta, groupTodosByStatus, matchesTodoSearch } from '../../utils/todoUtils';
@@ -34,7 +33,6 @@ const BOARD_COLUMNS = [
 
 export default function ToDoPage() {
   const dispatch = useDispatch();
-  const { showToast } = useToast();
 
   const { todoList, fetchStatus } = useSelector((state) => ({
     todoList: state.todo.todoList,
@@ -85,24 +83,12 @@ export default function ToDoPage() {
     const todo = todoList.find((t) => t.id === draggableId);
     if (!todo) return;
 
-    const resultAction = await dispatch(
-      updateTodoStatus({ id: todo.id, status: newStatus, previousStatus: todo.status }),
-    );
-    if (updateTodoStatus.fulfilled.match(resultAction)) {
-      showToast(`Moved "${todo.title}" to ${getTodoStatusMeta(newStatus).label}.`, 'success');
-    } else {
-      showToast('Could not update the status. Please try again.', 'error');
-    }
+    await dispatch(updateTodoStatus({ id: todo.id, status: newStatus, previousStatus: todo.status }));
   };
 
   const confirmDelete = async () => {
     if (!deleteTarget) return;
-    const result = await dispatch(deleteTodoById(deleteTarget.id));
-    if (deleteTodoById.fulfilled.match(result)) {
-      showToast(`Deleted "${deleteTarget.title}".`, 'success');
-    } else {
-      showToast('Could not delete this task. Please try again.', 'error');
-    }
+    await dispatch(deleteTodoById(deleteTarget.id));
     setDeleteTarget(null);
   };
 
