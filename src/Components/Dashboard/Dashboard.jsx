@@ -15,6 +15,7 @@ import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import StatCard from './StatCard';
 import DonutChart from './DonutChart';
+import PlatformBar from './PlatformBar';
 import StatusBadge from '../Shared/StatusBadge';
 import CommonSkeleton from '../Skelton';
 import ErrorState from '../Shared/ErrorState';
@@ -30,7 +31,20 @@ import {
   isActiveStage,
   isCrackedStatus,
 } from '../../statusConfig';
+import { PLATFORM_OPTIONS } from '../InterviewForm/validation';
 import { formatRelativeTime, sortByDefaultOrder } from '../../utils/interviewUtils';
+
+// Single mode-invariant hex per platform (same approach as STATUS_META.solid)
+// — validated with the dataviz palette script for both light (#fcfcfb) and
+// dark (#1a1a19) chart surfaces, adjacent-pair CVD/normal-vision checks.
+const PLATFORM_COLORS = {
+  naukri: '#3987e5',
+  indeed: '#d95926',
+  linkedin: '#199e70',
+  gmail: '#c98500',
+  portal: '#d55181',
+  others: '#008300',
+};
 
 const PREP_RESOURCES = [
   {
@@ -72,9 +86,11 @@ export default function Dashboard() {
     return { total, active, cracked, noResponse };
   }, [interviewList]);
 
+  // On Hold is appended after the pipeline stages so the "Interview Status"
+  // donut also reflects it, without reordering the validated pipeline order.
   const pipeline = useMemo(
     () =>
-      PIPELINE_STATUS_ORDER.map((status) => ({
+      [...PIPELINE_STATUS_ORDER, STATUS.ON_HOLD].map((status) => ({
         status,
         label: getStatusLabel(status),
         count: interviewList.filter((i) => i.initialStatus === status).length,
@@ -88,6 +104,21 @@ export default function Dashboard() {
   // slice's percentage are relative to this sum, not the overall interview
   // count, or Uncracked would silently inflate the denominator.
   const pipelineTotal = useMemo(() => pipeline.reduce((sum, stage) => sum + stage.count, 0), [pipeline]);
+
+  // Platform split: how interviews came in. Denominator is interviews with a
+  // platform set (same pattern as pipelineTotal) so an unspecified platform
+  // doesn't silently dilute the percentages.
+  const platforms = useMemo(
+    () =>
+      PLATFORM_OPTIONS.map((option) => ({
+        key: option.value,
+        label: option.label,
+        count: interviewList.filter((i) => i.platform === option.value).length,
+        color: PLATFORM_COLORS[option.value],
+      })),
+    [interviewList],
+  );
+  const platformTotal = useMemo(() => platforms.reduce((sum, p) => sum + p.count, 0), [platforms]);
 
   const recent = useMemo(() => {
     const active = interviewList.filter((i) => isActiveStage(i.initialStatus));
@@ -147,6 +178,13 @@ export default function Dashboard() {
               Get a quick overview of your current interview stages.
             </Typography>
             <DonutChart stages={pipeline} total={pipelineTotal} />
+
+            <Box sx={{ mt: 3, pt: 2, borderTop: (theme) => `1px solid ${theme.palette.divider}` }}>
+              <Typography variant="subtitle2" color="primary.main" sx={{ mb: 1 }}>
+                Platform Split
+              </Typography>
+              <PlatformBar platforms={platforms} total={platformTotal} />
+            </Box>
           </Card>
         </Grid>
 

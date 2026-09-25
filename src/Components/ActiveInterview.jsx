@@ -23,12 +23,13 @@ import DateSortToggle from './Shared/DateSortToggle';
 import EmptyState from './Shared/EmptyState';
 import ErrorState from './Shared/ErrorState';
 import CommonSkeleton from './Skelton';
-import { ACTIVE_STATUS_ORDER, STATUS_META, isActiveStage } from '../statusConfig';
+import { ACTIVE_STATUS_ORDER, STATUS, STATUS_META, isActiveStage, isHoldStatus } from '../statusConfig';
 import { matchesSearch, sortByDefaultOrder, sortInterviews } from '../utils/interviewUtils';
 
 const STATUS_FILTER_OPTIONS = [
   { value: 'all', label: 'All Statuses' },
   ...ACTIVE_STATUS_ORDER.map((status) => ({ value: status, label: STATUS_META[status].label })),
+  { value: STATUS.ON_HOLD, label: STATUS_META[STATUS.ON_HOLD].label },
 ];
 
 const VIEW_MODE_KEY = 'interview-tracker-active-view-mode';
@@ -83,6 +84,12 @@ export default function ActiveInterview() {
     }
     return sortTouched ? sortInterviews(list, sortDir) : sortByDefaultOrder(list);
   }, [interviewList, search, statusFilter, sortDir, sortTouched]);
+
+  // On Hold interviews stay in this section but are always broken out into
+  // their own group at the bottom, with a gap, instead of interleaving with
+  // the in-progress rows above.
+  const mainFiltered = useMemo(() => filtered.filter((item) => !isHoldStatus(item.initialStatus)), [filtered]);
+  const holdFiltered = useMemo(() => filtered.filter((item) => isHoldStatus(item.initialStatus)), [filtered]);
 
   const openAddModal = () => {
     setFormMode('add');
@@ -194,25 +201,55 @@ export default function ActiveInterview() {
         <EmptyState title="No matching interviews" description="Try adjusting your search or filters." />
       )}
 
-      {filtered.length > 0 && viewMode === 'table' ? (
-        <InterviewTable interviews={filtered} onView={openDetails} onEdit={openEditModal} onDelete={setDeleteTarget} />
-      ) : (
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)', xl: 'repeat(3, 1fr)' },
-            gap: 2,
-          }}
-        >
-          {filtered.map((interview) => (
-            <InterviewCardItem
-              key={interview.id}
-              interview={interview}
-              onView={openDetails}
-              onEdit={openEditModal}
-              onDelete={setDeleteTarget}
-            />
-          ))}
+      {mainFiltered.length > 0 &&
+        (viewMode === 'table' ? (
+          <InterviewTable interviews={mainFiltered} onView={openDetails} onEdit={openEditModal} onDelete={setDeleteTarget} />
+        ) : (
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)', xl: 'repeat(3, 1fr)' },
+              gap: 2,
+            }}
+          >
+            {mainFiltered.map((interview) => (
+              <InterviewCardItem
+                key={interview.id}
+                interview={interview}
+                onView={openDetails}
+                onEdit={openEditModal}
+                onDelete={setDeleteTarget}
+              />
+            ))}
+          </Box>
+        ))}
+
+      {holdFiltered.length > 0 && (
+        <Box sx={{ mt: mainFiltered.length > 0 ? 4 : 0, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+          <Typography variant="subtitle2" color="text.secondary">
+            On Hold
+          </Typography>
+          {viewMode === 'table' ? (
+            <InterviewTable interviews={holdFiltered} onView={openDetails} onEdit={openEditModal} onDelete={setDeleteTarget} />
+          ) : (
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)', xl: 'repeat(3, 1fr)' },
+                gap: 2,
+              }}
+            >
+              {holdFiltered.map((interview) => (
+                <InterviewCardItem
+                  key={interview.id}
+                  interview={interview}
+                  onView={openDetails}
+                  onEdit={openEditModal}
+                  onDelete={setDeleteTarget}
+                />
+              ))}
+            </Box>
+          )}
         </Box>
       )}
 

@@ -1,10 +1,12 @@
 import { formatDistanceToNow } from 'date-fns';
-import { ACTIVE_STATUS_ORDER } from '../statusConfig';
+import { ACTIVE_STATUS_ORDER, STATUS } from '../statusConfig';
 
 // Default display order before the sort control is touched: most-advanced
 // stage first (Management → Technical → HR) — the reverse of the pipeline's
-// natural progression order.
-const DEFAULT_STATUS_ORDER = [...ACTIVE_STATUS_ORDER].reverse();
+// natural progression order. On Hold is appended last on purpose: it's a
+// paused interview, not active progress, so it should always sink to the
+// bottom of the Active Interviews list regardless of its last-updated date.
+const DEFAULT_STATUS_ORDER = [...ACTIVE_STATUS_ORDER].reverse().concat(STATUS.ON_HOLD);
 
 function defaultStatusRank(status) {
   const index = DEFAULT_STATUS_ORDER.indexOf(status);

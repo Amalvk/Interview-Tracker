@@ -11,6 +11,7 @@ export const STATUS = {
   OFFER_RECEIVED: 5,
   UNCRACKED: 6,
   NO_RESPONSE: 7,
+  ON_HOLD: 8,
 };
 
 // The in-progress pipeline stages. Shown in the Active Interviews status
@@ -28,12 +29,19 @@ export const ACTIVE_STATUS_ORDER = [
 // Statuses that land an interview in the "Uncracked" section.
 export const UNCRACKED_STATUSES = [STATUS.UNCRACKED, STATUS.NO_RESPONSE];
 
+// On Hold isn't a pipeline stage (it's a pause, not progress), so it's kept
+// out of ACTIVE_STATUS_ORDER — but it still belongs in the Active Interviews
+// section, just always last (see isActiveStage / defaultStatusRank).
+export const HOLD_STATUS = STATUS.ON_HOLD;
+
 // Every status, in the order shown in the Edit Interview form — the only
-// place status can be changed. The in-progress stages first, then the
-// terminal outcomes. APPLIED is kept out (no longer offered going forward)
-// but its STATUS_META entry stays so any legacy record still renders fine.
+// place status can be changed. The in-progress stages first, then On Hold,
+// then the terminal outcomes. APPLIED is kept out (no longer offered going
+// forward) but its STATUS_META entry stays so any legacy record still
+// renders fine.
 export const ALL_STATUS_ORDER = [
   ...ACTIVE_STATUS_ORDER,
+  STATUS.ON_HOLD,
   STATUS.NO_RESPONSE,
   STATUS.OFFER_RECEIVED,
   STATUS.UNCRACKED,
@@ -45,7 +53,11 @@ export const ALL_STATUS_ORDER = [
 export const PIPELINE_STATUS_ORDER = [...ACTIVE_STATUS_ORDER, STATUS.NO_RESPONSE];
 
 export function isActiveStage(status) {
-  return ACTIVE_STATUS_ORDER.includes(status);
+  return ACTIVE_STATUS_ORDER.includes(status) || status === STATUS.ON_HOLD;
+}
+
+export function isHoldStatus(status) {
+  return status === STATUS.ON_HOLD;
 }
 
 export function isCrackedStatus(status) {
@@ -105,6 +117,12 @@ export const STATUS_META = {
     light: { bg: '#FFE4E6', color: '#BE123C' },
     dark: { bg: 'rgba(190,18,60,0.20)', color: '#fb7185' },
     solid: '#BE123C',
+  },
+  [STATUS.ON_HOLD]: {
+    label: 'On Hold',
+    light: { bg: '#E2E8F0', color: '#475569' },
+    dark: { bg: 'rgba(148,163,184,0.20)', color: '#cbd5e1' },
+    solid: '#64748B',
   },
 };
 
