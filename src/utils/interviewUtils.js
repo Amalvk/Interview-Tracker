@@ -69,7 +69,10 @@ export function matchesSearch(item, query) {
     : item.comments || '';
   const haystack = [
     item.companyName,
+    item.location,
     item.position,
+    item.platform,
+    item.platformOther,
     item.contactName,
     item.contactEmail,
     item.contactNumber,

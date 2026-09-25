@@ -191,7 +191,7 @@ export default function Dashboard() {
                         {item.companyName}
                       </Typography>
                       <Typography variant="caption" color="text.secondary" noWrap display="block">
-                        {item.position} · {formatRelativeTime(item)}
+                        {item.location || item.position} · {formatRelativeTime(item)}
                       </Typography>
                     </Box>
                     <StatusBadge status={item.initialStatus} />

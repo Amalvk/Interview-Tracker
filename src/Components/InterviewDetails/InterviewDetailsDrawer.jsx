@@ -12,6 +12,14 @@ import { format } from 'date-fns';
 import StatusBadge from '../Shared/StatusBadge';
 import PhoneAction from '../Shared/PhoneAction';
 import { getStatusLabel } from '../../statusConfig';
+import { PLATFORM_OPTIONS } from '../InterviewForm/validation';
+
+function getPlatformLabel(interview) {
+  if (interview.platform === 'others') {
+    return interview.platformOther ? `Others - ${interview.platformOther}` : 'Others';
+  }
+  return PLATFORM_OPTIONS.find((opt) => opt.value === interview.platform)?.label || interview.platform;
+}
 
 // A slim, unobtrusive scrollbar instead of the chunky OS default — used for
 // both the drawer's outer scroll and the Timeline's own inner scroll so the
@@ -97,7 +105,7 @@ export default function InterviewDetailsDrawer({ open, onClose, interview, onEdi
           <Box>
             <Typography variant="h6">{interview.companyName}</Typography>
             <Typography variant="body2" color="text.secondary">
-              {interview.position}
+              {interview.location || interview.position}
             </Typography>
           </Box>
           <IconButton aria-label="Close details" onClick={onClose} size="small">
@@ -108,6 +116,12 @@ export default function InterviewDetailsDrawer({ open, onClose, interview, onEdi
         <Box>
           <StatusBadge status={interview.initialStatus} />
         </Box>
+
+        {interview.platform && (
+          <Typography variant="body2" color="text.secondary">
+            Platform: {getPlatformLabel(interview)}
+          </Typography>
+        )}
 
         <Divider />
 

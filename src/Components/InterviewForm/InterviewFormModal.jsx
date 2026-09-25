@@ -20,7 +20,7 @@ import LabeledSelect from '../Shared/LabeledSelect';
 import ConfirmWarningModal from '../ConfirmWarningModal';
 import { saveFormToFirestore, updateInterviewForm } from '../../Redux/formSlice';
 import { ALL_STATUS_ORDER, STATUS, STATUS_META } from '../../statusConfig';
-import { validateInterviewForm, FIELD_LIMITS } from './validation';
+import { validateInterviewForm, FIELD_LIMITS, PLATFORM_OPTIONS } from './validation';
 
 const STATUS_OPTIONS = ALL_STATUS_ORDER.map((value) => ({
   value,
@@ -31,7 +31,9 @@ function emptyForm() {
   return {
     companyName: '',
     initialStatus: STATUS.HR_ROUND,
-    position: '',
+    location: '',
+    platform: '',
+    platformOther: '',
     contactNumber: '',
     contactName: '',
     contactEmail: '',
@@ -62,6 +64,9 @@ function buildInitialForm(interview) {
     if (key === 'commentList') continue;
     if (interview[key] !== undefined) next[key] = interview[key];
   }
+  // Older records stored the job title/location under "position" — fall back
+  // to it so existing interviews still show something in the new field.
+  if (!next.location && interview.position) next.location = interview.position;
   next.commentList = normalizeCommentList(interview);
   if (interview.id) next.id = interview.id;
   return next;
@@ -115,6 +120,12 @@ export default function InterviewFormModal({ open, mode, interview, onClose }) {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: undefined }));
+  };
+
+  const handlePlatformChange = (value) => {
+    setFormData((prev) => ({ ...prev, platform: value, platformOther: value === 'others' ? prev.platformOther : '' }));
+    if (errors.platform) setErrors((prev) => ({ ...prev, platform: undefined }));
+    if (value !== 'others' && errors.platformOther) setErrors((prev) => ({ ...prev, platformOther: undefined }));
   };
 
   const addCommentEntry = () => {
@@ -228,17 +239,41 @@ export default function InterviewFormModal({ open, mode, interview, onClose }) {
             />
 
             <TextField
-              name="position"
-              label="Position"
-              required
-              value={formData.position}
+              name="location"
+              label="Location"
+              value={formData.location}
               onChange={handleChange}
-              placeholder="e.g. Senior Frontend Developer"
+              placeholder="e.g. Bengaluru, India"
               fullWidth
-              error={!!errors.position}
-              helperText={errors.position || `${formData.position.length}/${FIELD_LIMITS.position}`}
-              inputProps={{ maxLength: FIELD_LIMITS.position }}
+              error={!!errors.location}
+              helperText={errors.location || `${formData.location.length}/${FIELD_LIMITS.location}`}
+              inputProps={{ maxLength: FIELD_LIMITS.location }}
             />
+
+            <LabeledSelect
+              label="Platform"
+              value={formData.platform}
+              onChange={handlePlatformChange}
+              options={[{ value: '', label: 'Not specified' }, ...PLATFORM_OPTIONS]}
+              sx={{ width: '100%' }}
+            />
+
+            {formData.platform === 'others' && (
+              <TextField
+                name="platformOther"
+                label="Specify Platform"
+                required
+                value={formData.platformOther}
+                onChange={handleChange}
+                placeholder="e.g. Referral, Campus drive, WhatsApp group"
+                fullWidth
+                error={!!errors.platformOther}
+                helperText={
+                  errors.platformOther || `${formData.platformOther.length}/${FIELD_LIMITS.platformOther}`
+                }
+                inputProps={{ maxLength: FIELD_LIMITS.platformOther }}
+              />
+            )}
 
             <TextField
               name="contactNumber"

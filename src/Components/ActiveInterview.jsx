@@ -129,7 +129,7 @@ export default function ActiveInterview() {
 
       {hasAnyInterviews && (
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ sm: 'center' }}>
-          <SearchBar value={search} onChange={setSearch} placeholder="Search company, position, HR, number, skill…" />
+          <SearchBar value={search} onChange={setSearch} placeholder="Search company, location, HR, number, skill…" />
           <LabeledSelect
             label="Status"
             hideLabel

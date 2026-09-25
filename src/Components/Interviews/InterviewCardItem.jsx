@@ -60,7 +60,7 @@ export default function InterviewCardItem({ interview, onView, onEdit, onDelete 
             {interview.companyName}
           </Typography>
           <Typography variant="body2" color="text.secondary" noWrap>
-            {interview.position}
+            {interview.location || interview.position}
           </Typography>
         </Box>
 

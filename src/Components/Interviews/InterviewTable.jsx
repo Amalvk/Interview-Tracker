@@ -38,7 +38,7 @@ export default function InterviewTable({ interviews, onView, onEdit, onDelete })
       <Table size="small" sx={{ minWidth: 760 }} aria-label="Interviews table">
         <TableHead>
           <TableRow sx={{ '& th': { fontSize: { xs: '0.72rem', sm: '0.8125rem' }, whiteSpace: 'nowrap' } }}>
-            <TableCell>Company &amp; Position</TableCell>
+            <TableCell>Company &amp; Location</TableCell>
             <TableCell>Status</TableCell>
             <TableCell>HR / Contact</TableCell>
             <TableCell>Last Updated</TableCell>
@@ -63,7 +63,7 @@ export default function InterviewTable({ interviews, onView, onEdit, onDelete })
                   {interview.companyName}
                 </Typography>
                 <Typography variant="caption" color="text.secondary" noWrap display="block">
-                  {interview.position}
+                  {interview.location || interview.position}
                 </Typography>
               </TableCell>
 

@@ -83,7 +83,7 @@ export default function CrackedInterview() {
 
       {hasAnyInterviews && (
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ sm: 'center' }}>
-          <SearchBar value={search} onChange={setSearch} placeholder="Search company, position, HR, skill…" />
+          <SearchBar value={search} onChange={setSearch} placeholder="Search company, location, HR, skill…" />
           <LabeledSelect label="Company" value={companyFilter} onChange={setCompanyFilter} options={companyOptions} />
           <DateSortToggle direction={sortDir} onToggle={() => setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))} />
         </Stack>
