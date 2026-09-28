@@ -13,6 +13,9 @@ import EmojiEventsOutlinedIcon from '@mui/icons-material/EmojiEventsOutlined';
 import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined';
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import AddIcon from '@mui/icons-material/Add';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
 import StatCard from './StatCard';
 import DonutChart from './DonutChart';
 import PlatformBar from './PlatformBar';
@@ -65,6 +68,7 @@ export default function Dashboard() {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [detailsInterview, setDetailsInterview] = useState(null);
   const [formOpen, setFormOpen] = useState(false);
+  const [formMode, setFormMode] = useState('add');
   const [selectedInterview, setSelectedInterview] = useState(null);
 
   const openDetails = (interview) => {
@@ -73,9 +77,16 @@ export default function Dashboard() {
   };
 
   const openEditModal = (interview) => {
+    setFormMode('edit');
     setSelectedInterview(interview);
     setFormOpen(true);
     setDetailsOpen(false);
+  };
+
+  const openAddModal = () => {
+    setFormMode('add');
+    setSelectedInterview(null);
+    setFormOpen(true);
   };
 
   const stats = useMemo(() => {
@@ -190,9 +201,33 @@ export default function Dashboard() {
 
         <Grid size={{ xs: 12, md: 5 }} sx={{ order: { xs: 1, md: 0 } }}>
           <Card sx={{ p: 2.5, height: '100%' }}>
-            <Typography variant="h6" color="primary.main" sx={{ mb: 0.5 }}>
-              Recent Interviews
-            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 1 }}>
+              <Typography variant="h6" color="primary.main" sx={{ mb: 0.5 }}>
+                Recent Interviews
+              </Typography>
+              <Tooltip title="Add Interview">
+                <IconButton
+                  size="small"
+                  color="primary"
+                  onClick={openAddModal}
+                  aria-label="Add interview"
+                  sx={{
+                    border: (theme) => `1px solid ${theme.palette.divider}`,
+                    borderRadius: 1.5,
+                    width: 28,
+                    height: 28,
+                    minWidth: 28,
+                    flexShrink: 0,
+                    p: 0,
+                    lineHeight: 0,
+                    display: 'grid',
+                    placeItems: 'center',
+                  }}
+                >
+                  <AddIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </Box>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
               Your latest interview opportunities and status updates.
             </Typography>
@@ -295,7 +330,7 @@ export default function Dashboard() {
 
       <InterviewFormModal
         open={formOpen}
-        mode="edit"
+        mode={formMode}
         interview={selectedInterview}
         onClose={() => setFormOpen(false)}
       />

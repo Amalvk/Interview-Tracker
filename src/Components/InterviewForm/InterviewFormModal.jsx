@@ -16,6 +16,7 @@ import ListItem from '@mui/material/ListItem';
 import CircularProgress from '@mui/material/CircularProgress';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import AddIcon from '@mui/icons-material/Add';
 import LabeledSelect from '../Shared/LabeledSelect';
 import ConfirmWarningModal from '../ConfirmWarningModal';
 import { saveFormToFirestore, updateInterviewForm } from '../../Redux/formSlice';
@@ -333,9 +334,18 @@ export default function InterviewFormModal({ open, mode, interview, onClose }) {
                     }
                   }}
                 />
-                <Button variant="outlined" size="small" onClick={addCommentEntry} sx={{ flexShrink: 0 }}>
-                  Add
-                </Button>
+                <IconButton
+                  color="primary"
+                  size="small"
+                  onClick={addCommentEntry}
+                  aria-label="Add comment"
+                  sx={{
+                    flexShrink: 0,
+                    border: (theme) => `1px solid ${theme.palette.divider}`,
+                  }}
+                >
+                  <AddIcon fontSize="small" />
+                </IconButton>
               </Box>
               <List
                 dense
