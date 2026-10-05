@@ -95,7 +95,7 @@ export const STATUS_META = {
     solid: '#0891B2',
   },
   [STATUS.MANAGEMENT_ROUND]: {
-    label: 'Management Round',
+    label: 'Manager Round',
     light: { bg: '#DCFCE7', color: '#166534' },
     dark: { bg: 'rgba(34,197,94,0.20)', color: '#4ade80' },
     solid: '#16A34A',

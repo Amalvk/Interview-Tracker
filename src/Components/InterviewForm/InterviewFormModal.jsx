@@ -19,7 +19,7 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import AddIcon from '@mui/icons-material/Add';
 import LabeledSelect from '../Shared/LabeledSelect';
 import ConfirmWarningModal from '../ConfirmWarningModal';
-import { saveFormToFirestore, updateInterviewForm } from '../../Redux/formSlice';
+import { fetchInterviewsFromFirestore, saveFormToFirestore, updateInterviewForm } from '../../Redux/formSlice';
 import { ALL_STATUS_ORDER, STATUS, STATUS_META } from '../../statusConfig';
 import { validateInterviewForm, FIELD_LIMITS, PLATFORM_OPTIONS } from './validation';
 
@@ -168,19 +168,29 @@ export default function InterviewFormModal({ open, mode, interview, onClose }) {
       return;
     }
 
+    // Include a typed-but-not-yet-added comment so it isn't lost on save.
+    const pendingText = draftComment.trim();
+    const commentList = pendingText
+      ? [...(formData.commentList || []), { id: Date.now(), text: pendingText, createdAt: new Date().toISOString() }]
+      : formData.commentList || [];
+    const submitData = { ...formData, commentList };
+
     setSubmitting(true);
     try {
       let resultAction;
       if (isEdit) {
-        const { id, ...updatedData } = formData;
+        const { id, ...updatedData } = submitData;
         if (interview && formData.initialStatus !== interview.initialStatus) {
           updatedData.previousStatus = interview.initialStatus;
         }
         resultAction = await dispatch(updateInterviewForm({ id, updatedData }));
       } else {
-        resultAction = await dispatch(
-          saveFormToFirestore({ ...formData, commentList: formData.commentList || [] }),
-        );
+        resultAction = await dispatch(saveFormToFirestore(submitData));
+      }
+
+      if (saveFormToFirestore.fulfilled.match(resultAction)) {
+        // Re-fetch so the new interview shows up in the list without a refresh.
+        dispatch(fetchInterviewsFromFirestore());
       }
 
       if (
@@ -341,6 +351,9 @@ export default function InterviewFormModal({ open, mode, interview, onClose }) {
                   aria-label="Add comment"
                   sx={{
                     flexShrink: 0,
+                    alignSelf: 'flex-start',
+                    width: 40,
+                    height: 40,
                     border: (theme) => `1px solid ${theme.palette.divider}`,
                   }}
                 >
